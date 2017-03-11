@@ -1,0 +1,19 @@
+{
+  "name": "taborola",
+  "description": "Change the current tabs",
+  "version": "1.0",
+  "permissions": [
+    "tabs",
+    "activeTab"
+  ],
+   "background": {
+	"scripts": ["taborola.js"],
+    "persistent": false
+  }, 
+  "browser_action": {
+      "default_title": "Set this page's color.",
+      "default_icon": "icon.png"
+
+  },  
+  "manifest_version": 2
+}
