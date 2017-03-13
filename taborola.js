@@ -2,6 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+var URL_DEFS = {
+	cnn : {
+		pattern: "\d{4}/\d{2}/\d{2}/([a-z]+)",
+		value: "$1"
+	}
+};
+
 chrome.browserAction.onClicked.addListener(function(tab) {
 	var url = tab.url;
 
@@ -10,11 +17,15 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 		start = url.indexOf('https://');
 	}
 	var ind = url.indexOf('/', start + 10);
-	var baseurl = url.substring(start, ind);
-	chrome.tabs.create({url: baseurl, selected: false, index: (tab.index + 1)});
+	if (ind !== -1) {
+		var baseurl = url.substring(start, ind);
+		if (baseurl !== url) {
+			chrome.tabs.create({url: baseurl, selected: false, index: (tab.index + 1)});
+		}
+	}
 	//chrome.tabs.create({url: chrome.extension.getURL(url)});
-	chrome.tabs.getCurrent(function(currTab) {
+	//chrome.tabs.getCurrent(function(currTab) {
 		//console.log(tab.url);
 		//chrome.tabs.create({url: baseurl, selected: false});
-	});
+	//});
 });
