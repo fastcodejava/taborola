@@ -25,7 +25,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 
 		if (ind !== -1) {
 			if (baseurl !== url) {
-				chrome.tabs.create({url: baseurl, selected: !items.tabsBackground, index: (tab.index + 1)});
+				chrome.tabs.create({url: baseurl, active: !items.tabsBackground, index: (tab.index + 1)});
 			}
 			if (items.highlightTabs) {
 				chrome.tabs.query({}, function (tabs) {
