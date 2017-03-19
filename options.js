@@ -2,7 +2,7 @@
  * Created by gdev on 3/18/2017.
  */
 function save_options() {
-    var tabsBackground = document.getElementById('tabsBackground').value;
+    var tabsBackground = document.getElementById('tabsBackground').checked;
     chrome.storage.sync.set({
         tabsBackground: tabsBackground
     }, function() {
@@ -21,7 +21,7 @@ function restore_options() {
     chrome.storage.sync.get({
         tabsBackground: true
     }, function(items) {
-        document.getElementById('tabsBackground').value = items.tabsBackground;
+        document.getElementById('tabsBackground').checked = items.tabsBackground;
     });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
