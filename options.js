@@ -3,8 +3,11 @@
  */
 function save_options() {
     var tabsBackground = document.getElementById('tabsBackground').checked;
+    var highlightTabs = document.getElementById('highlightTabs').checked;
+
     chrome.storage.sync.set({
-        tabsBackground: tabsBackground
+        tabsBackground: tabsBackground,
+        highlightTabs: highlightTabs
     }, function() {
         // Update status to let user know options were saved.
         var status = document.getElementById('status');
@@ -19,9 +22,11 @@ function save_options() {
 // stored in chrome.storage.
 function restore_options() {
     chrome.storage.sync.get({
-        tabsBackground: true
+        tabsBackground: true,
+        highlightTabs: true
     }, function(items) {
         document.getElementById('tabsBackground').checked = items.tabsBackground;
+        document.getElementById('highlightTabs').checked = items.highlightTabs;
     });
 }
 document.addEventListener('DOMContentLoaded', restore_options);

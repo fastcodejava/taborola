@@ -9,6 +9,8 @@ var URL_DEFS = {
 	}
 };
 
+var options = ['tabsBackground', 'highlightTabs']
+
 chrome.browserAction.onClicked.addListener(function(tab) {
 	var url = tab.url;
 
@@ -16,16 +18,30 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 	if (start < 0) {
 		start = url.indexOf('https://');
 	}
-	chrome.storage.sync.get('tabsBackground', function(items) {
+	var ind = url.indexOf('/', start + 10);
+	var baseurl = url.substring(start, ind);
 
-		var ind = url.indexOf('/', start + 10);
+	chrome.storage.sync.get(options, function(items) {
+
 		if (ind !== -1) {
-			var baseurl = url.substring(start, ind);
 			if (baseurl !== url) {
 				chrome.tabs.create({url: baseurl, selected: !items.tabsBackground, index: (tab.index + 1)});
 			}
+			if (items.highlightTabs) {
+				chrome.tabs.query({}, function (tabs) {
+					var t = [tab.index];
+					tabs.forEach(function (tb) {
+						if (tb.url.indexOf(baseurl) === 0 && tb.index !== tab.index) {
+							t.push(tb.index);
+						}
+					});
+					chrome.tabs.highlight({tabs: t});
+				});
+			}
 		}
 	});
+
+
 	//chrome.tabs.create({url: chrome.extension.getURL(url)});
 	//chrome.tabs.getCurrent(function(currTab) {
 		//console.log(tab.url);

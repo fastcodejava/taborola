@@ -5,6 +5,7 @@
   "permissions": [
     "tabs",
     "activeTab",
+    "commands",
     "storage"
   ],
   "options_ui": {
@@ -12,13 +13,26 @@
     "chrome_style": true
   },
    "background": {
-	"scripts": ["taborola.js"],
+	"scripts": ["taborola.js", "background.js"],
     "persistent": false
+  },
+  "commands": {
+    "toggle-feature": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y"
+      },
+      "description": "Send a 'toggle-feature' event to the extension"
+    },
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+F",
+        "mac": "MacCtrl+Shift+F"
+      }
+    }
   },
   "browser_action": {
       "default_title": "Set this page's color.",
       "default_icon": "icon.png"
-
-  },  
+  },
   "manifest_version": 2
 }
