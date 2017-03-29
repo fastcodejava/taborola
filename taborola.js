@@ -9,7 +9,7 @@ var URL_DEFS = {
 	}
 };
 
-var options = ['tabsBackground', 'highlightTabs']
+var options = ['tabsBackground', 'highlightTabs'];
 
 chrome.browserAction.onClicked.addListener(function(tab) {
 	var url = tab.url;
@@ -41,8 +41,21 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 		}
 	});
 
+    function clickHandler(e) {
+        chrome.tabs.executeScript({code : "var selectedPages = 'krish';"},
+            function (result) {
+                chrome.tabs.executeScript({file : "openSelectedPages.js"}, function(result){});
+            });
 
-	//chrome.tabs.create({url: chrome.extension.getURL(url)});
+        window.close();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('openbtn').addEventListener('click', clickHandler);
+    });
+
+
+    //chrome.tabs.create({url: chrome.extension.getURL(url)});
 	//chrome.tabs.getCurrent(function(currTab) {
 		//console.log(tab.url);
 		//chrome.tabs.create({url: baseurl, selected: false});
