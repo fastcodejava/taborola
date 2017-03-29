@@ -28,4 +28,11 @@ function clickHandler(e) {
 
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('openbtn').addEventListener('click', clickHandler);
+    var links = document.getElementsByName('link');
+
+    links.forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            document.getElementById('openbtn').disabled = false;
+        });
+    });
 });
