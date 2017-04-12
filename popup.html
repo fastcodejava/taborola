@@ -1,25 +1,27 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+ -->
 <html>
 <head>
     <title>Select pages to view</title>
+    <style>
+        body {
+            font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+            font-size: 100%;
+        }
 
-    <!--
-      - JavaScript and HTML must be in separate files: see our Content Security
-      - Policy documentation[1] for details and explanation.
-      -
-      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
-     -->
+    </style>
     <script src="./popup.js"></script>
 </head>
 <body>
 <body>
 <form >
-    <ul>
-        <input type="radio" name="link" id="link1" value="link1" />http://www.amazon.in/books</br>
-        <input type="radio" name="link" id="link2" value="link2" />http://www.amazon.in/kitchen</br>
-        <input type="radio" name="link" id="link3" value="link3" />http://www.amazon.in/Grocery</br>
-        <input type="radio" name="link" id="link4" value="link4" />http://www.amazon.in/mobiles-phones</br>
-    </ul>
-    <input type="button" id="openbtn" disabled="true" value="Open" />
+
+    <div id="content" style="width:200px;"></div>
+    <input type="button" id="openbtn" value="Open" />
 </form>
 
 
