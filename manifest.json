@@ -13,7 +13,7 @@
     "chrome_style": true
   },
    "background": {
-	"scripts": ["taborola.js", "background.js"],
+	"scripts": ["popup.js", "taborola.js", "background.js"],
     "persistent": false
   },
   "commands": {
