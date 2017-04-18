@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Taborola Extension Options</title>
+    <title>My Preferences Options</title>
     <style>
         body: { padding: 10px; }
     </style>
@@ -17,15 +17,24 @@ Favorite color:
     <option value="yellow">yellow</option>
 </select>
 -->
-
+<div id="content">
+</div>
+<br/>
+<button id="delete" style="float: right;">Delete</button>
+<br/>
+<br/>
 <label>
-    <input type="checkbox" id="tabsBackground">
-    Open tabs in Background.
+    <input type="text" id="prefDomain">
+    Domain.
     <br />
-    <input type="checkbox" id="highlightTabs">
-    Highlight tabs with same base url.
+    <br />
 </label>
-
+<label>
+    <input type="text" id="prefUrl">
+    Preferred URL.
+    <br />
+    <br />
+</label>
 <div id="status"></div>
 <button id="save">Save</button>
 
