@@ -1,9 +1,22 @@
-var urls = {
+var jsonData;
 
+var xhr = new XMLHttpRequest();
+xhr.open('GET', chrome.extension.getURL('pages.json'), true);
+xhr.onreadystatechange = function() {
+    console.log("here");
+    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+        console.log(xhr.responseText);
+        jsonData = JSON.parse(xhr.responseText);
+    }
 };
+xhr.send();
 
+function closeWindow (e) {
+    window.close();
+}
 
 function clickHandler(e) {
+
 
     var allUrls = document.getElementsByName("link");
     var urlsToOpen = [];
@@ -59,7 +72,9 @@ function openTab(urlToOpen) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('cancelbtn').addEventListener('click', closeWindow);
     document.getElementById('openbtn').addEventListener('click', clickHandler);
+
     var content = document.getElementById('content');
     chrome.tabs.getCurrent(function (callback) {
         console.log(callback);
@@ -77,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //console.log(allurls);
         //allurls.forEach(function(url, index) {
         //if (url === name) {
-        var allurls = urls[name];
+        var allurls = jsonData[name];
         //console.log(index);
         //var pages = Object.values(urls)[index];
         var list = document.createElement("UL");
