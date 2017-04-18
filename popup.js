@@ -1,4 +1,5 @@
 var jsonData;
+var currentTab;
 
 var xhr = new XMLHttpRequest();
 xhr.open('GET', chrome.extension.getURL('pages.json'), true);
@@ -10,6 +11,8 @@ xhr.onreadystatechange = function() {
     }
 };
 xhr.send();
+
+
 
 function closeWindow (e) {
     window.close();
@@ -29,12 +32,10 @@ function clickHandler(e) {
     // alert("kkk" + urlsToOpen);
     // var firstUrl = urlsToOpen.shift();
 
-    getCurrentTabUrl(function (tab) {
-        var pos = tab.index + 1;
+        var pos = currentTab.index + 1;
         urlsToOpen.forEach(function (url) {
             chrome.tabs.create({url: url, active : false, index: pos++});
         });
-    });
 
         // chrome.tabs.create({url: firstUrl, active : false}, function (tab) {
         // alert(firstUrl);
@@ -174,6 +175,7 @@ function getCurrentTabUrl(callback) {
 
         var tab = tabs[0];
         // var url = tab.url;
+        currentTab = tab;
         callback(tab);
     });
 }
