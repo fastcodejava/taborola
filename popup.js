@@ -29,8 +29,11 @@ function clickHandler(e) {
     // alert("kkk" + urlsToOpen);
     // var firstUrl = urlsToOpen.shift();
 
-    urlsToOpen.forEach(function (url) {
-        chrome.tabs.create({url: url, active : false});
+    getCurrentTabUrl(function (tab) {
+        var pos = tab.index + 1;
+        urlsToOpen.forEach(function (url) {
+            chrome.tabs.create({url: url, active : false, index: pos++});
+        });
     });
 
         // chrome.tabs.create({url: firstUrl, active : false}, function (tab) {
@@ -84,7 +87,8 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log(tab);
     });
 
-    getCurrentTabUrl(function(currentUrl) {
+    getCurrentTabUrl(function(tab) {
+        var currentUrl = tab.url;
         var domain = getDomain(currentUrl);
         var name = domain.split('.')[0];
         //console.log("fff" + JSON.stringify());
@@ -169,7 +173,7 @@ function getCurrentTabUrl(callback) {
     chrome.tabs.query(queryInfo, function (tabs) {
 
         var tab = tabs[0];
-        var url = tab.url;
-        callback(url);
+        // var url = tab.url;
+        callback(tab);
     });
 }
