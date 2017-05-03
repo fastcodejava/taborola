@@ -1,148 +1,122 @@
 var jsonData;
 var currentTab;
+var highlightTabs;
+var tabsBackground;
 
-var xhr = new XMLHttpRequest();
-xhr.open('GET', chrome.extension.getURL('pages.json'), true);
-xhr.onreadystatechange = function() {
-    console.log("here");
-    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-        console.log(xhr.responseText);
-        jsonData = JSON.parse(xhr.responseText);
-    }
-};
-xhr.send();
+var options = ['tabsBackground', 'highlightTabs', 'jsonData']
 
-
+/*
+ var xhr = new XMLHttpRequest();
+ xhr.open('GET', chrome.extension.getURL('pages.json'), true);
+ xhr.onreadystatechange = function() {
+ console.log("here");
+ if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+ console.log(xhr.responseText);
+ jsonData = JSON.parse(xhr.responseText);
+ }
+ };
+ xhr.send();
+ */
+chrome.storage.sync.get( options, function(items) {
+    jsonData = items.jsonData;
+    highlightTabs = items.highlightTabs;
+    tabsBackground = items.tabsBackground;
+});
 
 function closeWindow (e) {
     window.close();
 }
 
-function clickHandler(e) {
 
+function clickHandler(e) {
 
     var allUrls = document.getElementsByName("link");
     var urlsToOpen = [];
+    var tabToHilite = [currentTab.index];
+    var openAt = currentTab.index + 1;
     allUrls.forEach (function (url) {
         console.log(url);
         if (url.checked) {
             urlsToOpen.push(url.value);
+            /*chrome.tabs.create({url: url.value, active : !tabsBackground, index: openAt}, function(tab){
+             tabToHilite.push(tab.index);
+             openAt ++;
+             });*/
+
+
         }
     });
-    // alert("kkk" + urlsToOpen);
-    // var firstUrl = urlsToOpen.shift();
 
-        var pos = currentTab.index + 1;
-        urlsToOpen.forEach(function (url) {
-            chrome.tabs.create({url: url, active : false, index: pos++});
-        });
+    /*if (highlightTabs) {
+     chrome.tabs.highlight({tabs: tabToHilite}, function(){});
+     }*/
+    chrome.storage.sync.set({"urlsToOpen": urlsToOpen, currTab : currentTab}, function() {
+    });
 
-        // chrome.tabs.create({url: firstUrl, active : false}, function (tab) {
-        // alert(firstUrl);
 
-            // urlsToOpen.forEach(function (url) {
-            //     chrome.tabs.create({url: url, active : false});
-            // });
 
-        // chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-            // alert("in update");
-            // alert(tab.url + "kkk" + firstUrl);
-
-            /*if (tab.url === firstUrl && changeInfo.status == 'complete') {*/
-             // alert('done');
-             // urlsToOpen.forEach(function (toOpen){
-             // chrome.tabs.create({url: toOpen, active : false});
-             // });
-             //return;
-             //}
-        // });
-    // });
-    // alert(" first" + firstUrl);
 
     window.close();
-}
-function openTab(urlToOpen) {
-    chrome.tabs.create({url: urlToOpen, active : false});
-    chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-        // alert("in update");
-        // alert(tab.url + "kkk" + urlToOpen);
-
-        if (tab.url === urlToOpen && changeInfo.status == 'complete') {
-            alert('done');
-            return;
-        }
-    });
-
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('cancelbtn').addEventListener('click', closeWindow);
     document.getElementById('openbtn').addEventListener('click', clickHandler);
-
     var content = document.getElementById('content');
-    chrome.tabs.getCurrent(function (callback) {
-        console.log(callback);
-    });
-
-    chrome.tabs.getSelected(null, function(tab){
-        console.log(tab);
-    });
 
     getCurrentTabUrl(function(tab) {
         var currentUrl = tab.url;
+        var url = new URL(tab.url)
+        var domain1 = url.hostname;
+        console.log("dom-" + domain1);
+        var hostNameArray = domain1.split(".");
+
+        console.log(hostNameArray.length);
         var domain = getDomain(currentUrl);
         var name = domain.split('.')[0];
-        //console.log("fff" + JSON.stringify());
-        //var allurls = Object.keys(urls);
-        //console.log(allurls);
-        //allurls.forEach(function(url, index) {
-        //if (url === name) {
         var allurls = jsonData[name];
-        //console.log(index);
-        //var pages = Object.values(urls)[index];
-        var list = document.createElement("UL");
-        var i=1;
-        var value="";
-        allurls.forEach(function(page) {
-            console.log(Object.keys(page)[0]);
-            console.log(Object.values(page)[0]);
-            var input = document.createElement("INPUT");
-            var linkObj = Object.values(page)[0];
+        console.log(jsonData);
+        if(jsonData[name]){
+            var list = document.createElement("UL");
+            var i=1;
+            var value="";
+            allurls.forEach(function(page) {
+                console.log(Object.keys(page)[0]);
+                console.log(Object.values(page)[0]);
+                var input = document.createElement("INPUT");
+                var linkObj = Object.values(page)[0];
+                input.setAttribute("type", "checkbox");
+                input.setAttribute("value", Object.values(page)[0]);
+                input.setAttribute("name", "link");
+                var id = Object.keys(page)[0];
+                input.setAttribute("id", id);
 
-            input.setAttribute("type", "checkbox");
-            input.setAttribute("value", Object.values(page)[0]);
-            input.setAttribute("name", "link");
-            var id = Object.keys(page)[0];
-            input.setAttribute("id", id);
-
-            if (typeof linkObj === 'object') {
-                input.setAttribute("value", linkObj.url);
-                input.setAttribute("Alt", linkObj.alt);
-                if (currentUrl !== linkObj && linkObj.selected !== false) {
-                    input.setAttribute("checked", true);
+                if (typeof linkObj === 'object') {
+                    input.setAttribute("value", linkObj.url);
+                    input.setAttribute("Alt", linkObj.alt);
+                    if (currentUrl !== linkObj && linkObj.selected !== false) {
+                        input.setAttribute("checked", true);
+                    }
+                } else {
+                    input.setAttribute("value", linkObj);
+                    input.setAttribute("Alt", linkObj);
+                    if (currentUrl !== linkObj[0]) {
+                        input.setAttribute("checked", true);
+                    }
                 }
-            } else {
-                input.setAttribute("value", linkObj);
-                input.setAttribute("Alt", linkObj);
-                if (currentUrl !== linkObj[0]) {
-                    input.setAttribute("checked", true);
-                }
-            }
-
-
-            var label = document.createElement('label');
-            label.htmlFor = id;
-            label.appendChild(document.createTextNode(id));
-            list.appendChild(input);
-            list.appendChild(label);
-            var line = document.createElement('br');
-            list.appendChild(line);
-
-
-        });
-        content.appendChild(list);
-        //}
-        //});
+                var label = document.createElement('label');
+                label.htmlFor = id;
+                label.appendChild(document.createTextNode(id));
+                list.appendChild(input);
+                list.appendChild(label);
+                var line = document.createElement('br');
+                list.appendChild(line);
+            });
+            content.appendChild(list);
+        } else {
+            var text = document.createTextNode("Domain not set in preference.");
+            content.appendChild(text);
+        }
     });
 
 });
@@ -174,7 +148,7 @@ function getCurrentTabUrl(callback) {
     chrome.tabs.query(queryInfo, function (tabs) {
 
         var tab = tabs[0];
-        // var url = tab.url;
+        //var url = tab.url;
         currentTab = tab;
         callback(tab);
     });

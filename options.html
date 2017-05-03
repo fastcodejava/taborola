@@ -1,23 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Taborola Extension Options</title>
+    <title>My Preferences Options</title>
     <style>
         body: { padding: 10px; }
     </style>
 </head>
 
 <body>
-<!--
-Favorite color:
-<select id="color">
-    <option value="red">red</option>
-    <option value="green">green</option>
-    <option value="blue">blue</option>
-    <option value="yellow">yellow</option>
-</select>
--->
 
+<!--<div id="content">
+</div>
+<br/>-->
+<label>
+    JSON Data
+    <textarea rows="20" cols="70" id="jsonData">
+
+	</textarea>
+    <br />
+</label>
 <label>
     <input type="checkbox" id="tabsBackground">
     Open tabs in Background.
@@ -26,8 +27,27 @@ Favorite color:
     Highlight tabs with same base url.
 </label>
 
+<!--<button id="delete" style="float: right;">Delete</button>
+<br/>
+<br/>
+<label>
+    <input type="text" id="prefDomain">
+    Domain.
+    <br />
+   <br />
+</label>
+<label>
+    <input type="text" id="prefUrl">
+    Preferred URL.
+    <br />
+   <br />
+</label>-->
+
 <div id="status"></div>
+<div id="error"></div>
+
 <button id="save">Save</button>
+<button id="cancel">Cancel</button>
 
 <script src="options.js"></script>
 </body>
