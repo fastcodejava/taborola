@@ -23,22 +23,26 @@ chrome.storage.onChanged.addListener(function(changes, area) {
             openAt ++;
             //console.log(JSON.stringify(tab));
             var firstPage = tab.id;
+            var lastTab = tab.id;
             chrome.tabs.onUpdated.addListener(function(tabId , info) {
                 //console.log(tabId + "" + JSON.stringify(info));
-                if (info.status == "complete" && tabId === tab.id) {
+                if (info.status == "complete" && tabId === lastTab && urls.length > 1) {
                     //console.log("length" + urls.length);
                     chrome.tabs.update(firstPage, {active: true});
-                    if (urls.length > 1) {
                         urls.shift();
-                        //console.log("after shift" + urls);
-                        urls.forEach(function(page){
-                            //console.log(page);
-                            chrome.tabs.create({url: page, active : !tabsBackground, index: openAt}, function(tab){
-                                tabToHilite.push(tab.index);
-                                openAt ++;
-                            });
+                        chrome.tabs.create({url: urls[0], active : false, index: openAt}, function(tab) {
+                            lastTab = tab.id;
+                            tabToHilite.push(tab.index);
+                            openAt ++;
                         });
-                    }
+                        //console.log("after shift" + urls);
+                        // urls.forEach(function(page) {
+                        //     //console.log(page);
+                        //     chrome.tabs.create({url: page, active : !tabsBackground, index: openAt}, function(tab){
+                        //         tabToHilite.push(tab.index);
+                        //         openAt ++;
+                        //     });
+                        // });
                     //console.log("i m complete");
                 }
             });
