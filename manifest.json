@@ -6,15 +6,16 @@
     "tabs",
     "activeTab",
     "commands",
-    "storage"
+    "storage",
+    "background",
+    "chrome://favicon/"
   ],
   "options_ui": {
     "page": "options.html",
     "chrome_style": true
   },
-   "background": {
-	"scripts": ["popup.js", "taborola.js", "background.js"],
-    "persistent": false
+  "background": {
+    "scripts": ["background.js"]
   },
   "commands": {
     "toggle-feature": {
@@ -25,15 +26,15 @@
     },
     "_execute_browser_action": {
       "suggested_key": {
-        "default": "Ctrl+Shift+F",
-        "mac": "MacCtrl+Shift+F"
+        "default": "Ctrl+Shift+S",
+        "mac": "MacCtrl+Shift+S"
       }
     }
   },
   "browser_action": {
-      "default_title": "Set this page's color.",
-      "default_icon": "icon.png",
-      "default_popup": "popup.html"
+    "default_title": "Open my pages.",
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
   },
   "manifest_version": 2
 }

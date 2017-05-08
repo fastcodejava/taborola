@@ -7,16 +7,18 @@ var options = ['tabsBackground', 'highlightTabs', 'jsonData']
 
 /*
  var xhr = new XMLHttpRequest();
- xhr.open('GET', chrome.extension.getURL('pages.json'), true);
+ xhr.open('GET', chrome.extension.getURL('chrome://favicon/http://www.amazon.in'));
+ xhr.responseType = "blob";
+
  xhr.onreadystatechange = function() {
  console.log("here");
  if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
  console.log(xhr.responseText);
- jsonData = JSON.parse(xhr.responseText);
+ //var ico = JSON.parse(xhr.responseText);
  }
  };
- xhr.send();
- */
+ xhr.send();*/
+
 chrome.storage.sync.get( options, function(items) {
     jsonData = items.jsonData;
     highlightTabs = items.highlightTabs;
@@ -59,9 +61,27 @@ function clickHandler(e) {
     window.close();
 }
 
+function selectall () {
+    var allUrls = document.getElementsByName("link");
+    if (document.getElementById('selectall').checked) {
+        allUrls.forEach (function (url) {
+            url.checked = true;
+        });
+    } else {
+        allUrls.forEach (function (url) {
+            url.checked = false;
+        });
+    }
+
+
+}
+
+
+
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('cancelbtn').addEventListener('click', closeWindow);
     document.getElementById('openbtn').addEventListener('click', clickHandler);
+    document.getElementById('selectall').addEventListener('click', selectall);
     var content = document.getElementById('content');
 
     getCurrentTabUrl(function(tab) {
@@ -77,7 +97,9 @@ document.addEventListener('DOMContentLoaded', function () {
         var allurls = jsonData[name];
         console.log(jsonData);
         if(jsonData[name]){
-            var list = document.createElement("UL");
+            var list = document.createElement("OL");
+            // list.setAttribute("style", "list-style-type:1");
+            list.setAttribute("type", "1");
             var i=1;
             var value="";
             allurls.forEach(function(page) {
@@ -107,10 +129,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 var label = document.createElement('label');
                 label.htmlFor = id;
                 label.appendChild(document.createTextNode(id));
-                list.appendChild(input);
-                list.appendChild(label);
-                var line = document.createElement('br');
-                list.appendChild(line);
+                var li = document.createElement("LI");
+
+                list.appendChild(li);
+                li.appendChild(input);
+                li.appendChild(label);
+                var x = document.createElement("IMG");
+                x.setAttribute("src", 'chrome://favicon/http://'+ domain1);
+                x.setAttribute("width", "20");
+                x.setAttribute("height", "12");
+                li.appendChild(x);
+                // var line = document.createElement('br');
+                // list.appendChild(line);
             });
             content.appendChild(list);
         } else {
@@ -145,7 +175,7 @@ function getCurrentTabUrl(callback) {
         currentWindow: true
     };
 
-    chrome.tabs.query(queryInfo, function (tabs) {
+    chrome.tabs.query(queryInfo, function(tabs) {
 
         var tab = tabs[0];
         //var url = tab.url;
