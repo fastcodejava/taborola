@@ -58,6 +58,12 @@ function restore_options() {
     });
 }
 
+function replacer(key, value) {
+    alert(JSON.stringify(key));
+    alert(JSON.stringify(value));
+    return "<font color='blue'>" + value + "</font>";
+}
+
 function cancel_options () {
     window.close();
 }

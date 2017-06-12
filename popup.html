@@ -16,15 +16,17 @@
     </style>
     <script src="./popup.js"></script>
 </head>
-<body>
-<body>
+<body style="width:300px;">
 <form >
     <div id="mainStuff" style="height:200px;">
         <input type="checkbox" id="selectall" value="selectall" checked style="margin-left:25px;">All</input>
         <div id="content" style="width:200px;align:left"></div>
-        <div id="samewindow" hidden><input type="checkbox"  id="samewindowChkbx" value="samewindow" style="margin-left:25px;"><font size="2" >Open in Same Window</font></input></div>
-        <input type="button" id="openbtn" value="Open" style="margin-left:25px ;"/>
-        <input type="button" id="cancelbtn" value="Cancel" />
+        <div id="sametab" hidden><input type="checkbox"  id="sametabChkbx" value="sametab" style="margin-left:25px;"><font size="2" >Open in Same Tab</font></input></div>
+        <input type="button" id="openbtn" value="Open" style="margin-left:25px ;" accesskey="o"/>
+        <input type="button" id="cancelbtn" value="Cancel" accesskey="x"/>
+        <input type="button" id="addbtn" value="Add" style="margin-left:25px ;" accesskey="a"/> <!--hidden = "hidden"-->
+
+        <div id="status"></div>
     </div>
     <div id="adStuff" style="height:50px;"></div>
 </form>

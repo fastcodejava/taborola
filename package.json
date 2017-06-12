@@ -1,0 +1,28 @@
+{
+  "name": "mypages",
+  "version": "1.0.0",
+  "description": "",
+  "main": "popup.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "chrome",
+    "tab",
+    "page"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "devDependencies": {
+    "grunt-contrib-jshint": "^1.1.0",
+    "grunt-simple-mocha": "^0.4.1"
+  }
+}
