@@ -1,5 +1,5 @@
 {
-  "name": "taborola",
+  "name": "mypages",
   "description": "Change the current tabs",
   "version": "1.0",
   "permissions": [
@@ -33,7 +33,7 @@
   },
   "browser_action": {
     "default_title": "Open my pages.",
-    "default_icon": "icon.png",
+    "default_icon": "icons/ic_title_black_24dp_1x.png",
     "default_popup": "popup.html"
   },
   "manifest_version": 2

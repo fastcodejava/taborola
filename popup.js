@@ -4,8 +4,9 @@ var highlightTabs;
 var tabsBackground;
 var currentUrl;
 var invokedWindow;
+var selectAll;
 
-var options = ['tabsBackground', 'highlightTabs', 'jsonData'];
+var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll'];
 
 /*
  var xhr = new XMLHttpRequest();
@@ -25,6 +26,7 @@ chrome.storage.sync.get( options, function(items) {
     jsonData = items.jsonData;
     highlightTabs = items.highlightTabs;
     tabsBackground = items.tabsBackground;
+    selectAll = items.selectAll;
 });
 
 function closeWindow (e) {
@@ -47,6 +49,8 @@ function clickHandler(e) {
              tabToHilite.push(tab.index);
              openAt ++;
              });*/
+
+
         } else {
             console.log("came till here in else");
         }
@@ -243,6 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     getCurrentTabUrl(function(tab) {
         currentUrl = tab.url;
+
         var url = new URL(tab.url);
         var fullDomain = url.hostname;
         console.log("dom-" + fullDomain);
@@ -253,6 +258,10 @@ document.addEventListener('DOMContentLoaded', function () {
         var name = domain.split('.')[0];
         console.log("name --" + name);
         var prefForDom = jsonData[url.hostname] || jsonData[name];
+        /*var prefForDom = jsonData[fullDomain];
+         if (prefForDom === undefined) {
+         prefForDom = jsonData[name];
+         }*/
 
         console.log(jsonData);
         console.log(prefForDom);
@@ -274,7 +283,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 content.appendChild(createList(prefForDom[selectedType]));
             }
             //document.getElementsByName("link").addEventListener('click', chkBoxClick);
-
+            if (selectAll) {
+                document.getElementById('selectall').checked = true;
+            }
         } else {
             var text = document.createTextNode("Domain not set in preference.");
             document.getElementById('openbtn').hidden = "hidden";
@@ -302,7 +313,6 @@ function createList(allurls) {
     var i=1;
     var value="";
     var bgColor = "#F4F6F7";
-
     allurls.forEach(function(page) {
         console.log("in createList " + JSON.stringify(page));
         //console.log(Object.keys(page));
@@ -329,19 +339,7 @@ function createList(allurls) {
         input.setAttribute("id", id);
         input.onclick = chkBoxClick;
 
-        if (typeof linkObj === 'object') {
-            input.setAttribute("value", linkObj.url);
-            input.setAttribute("Alt", linkObj.alt);
-            if (currentUrl !== linkObj && linkObj.selected !== false) {
-                input.setAttribute("checked", true);
-            }
-        } else {
-            input.setAttribute("value", linkObj);
-            input.setAttribute("Alt", linkObj);
-            if (currentUrl !== linkObj[0]) {
-                input.setAttribute("checked", true);
-            }
-        }
+
         var li = document.createElement("LI");
         li.style.backgroundColor = bgColor;
         //li.setAttribute("background-color" , "#FFFEEC");
@@ -352,7 +350,23 @@ function createList(allurls) {
         logo.setAttribute("height", "12");
         var label = document.createElement('label');
         label.htmlFor = id;
-        label.style.fontWeight = "bold";
+
+        if (typeof linkObj === 'object') {
+            input.setAttribute("value", linkObj.url);
+            input.setAttribute("Alt", linkObj.alt);
+            if (currentUrl !== linkObj && linkObj.selected !== false && selectAll) {
+                input.setAttribute("checked", true);
+                label.style.fontWeight = "bold";
+            }
+        } else {
+            input.setAttribute("value", linkObj);
+            input.setAttribute("Alt", linkObj);
+            if (currentUrl !== linkObj[0] && selectAll) {
+                input.setAttribute("checked", true);
+                label.style.fontWeight = "bold";
+            }
+        }
+
 
         var link = document.createElement('a');
         link.textContent = id;
@@ -391,10 +405,10 @@ function selectOption() {
     var type = document.getElementById("typeSelect");
     var selectedType = type.options[type.selectedIndex].value;
 
+    //var allTypes = jsonData[type.name];
     var url = new URL(currentUrl);
 
     var allTypes = jsonData[url.hostname] || jsonData[type.name];
-
     if (Array.isArray(allTypes[selectedType])){
         content.appendChild(createList(allTypes[selectedType]));
     }

@@ -16,10 +16,10 @@ chrome.windows.getCurrent(function(win){
 });
 
 chrome.storage.sync.get(function(data) {
-    console.log("data sync " + JSON.stringify(data));
+    //console.log("data sync " + JSON.stringify(data));
 });
 chrome.storage.onChanged.addListener(function(changes, area) {
-    console.log("in bkgd page" + JSON.stringify(changes));
+    //console.log("in bkgd page" + JSON.stringify(changes));
     //console.log("currWindow from bkg" + currWindow);
 
     if (area == "sync" && "urlsToOpen" in changes) {
@@ -38,8 +38,11 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                         //console.log(JSON.stringify(tab));
                         var firstPage = tab.id;
                         var lastTab = tab.id;
+                        console.log("reset");
+                        chrome.browserAction.setIcon({path:"icons/ic_loop_black_24dp_1x.png"});
                         chrome.tabs.onUpdated.addListener(function(tabId , info) {
-                            //console.log(tabId + "" + JSON.stringify(info));
+                            console.log(tabId + "" + JSON.stringify(info));
+                            console.log("urls ln" + urls.length);
                             if (info.status === "complete"  && tabId === lastTab && urls.length > 1) {
                                 //console.log("length" + urls.length);
                                 chrome.tabs.update(firstPage, {active: true});
@@ -49,6 +52,9 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                                     tabToHilite.push(tab.index);
                                     openAt ++;
                                 });
+                            }
+                            if (info.status === "complete"  &&  tabId === lastTab && urls.length == 1) {
+                                chrome.browserAction.setIcon({path:"icons/ic_title_black_24dp_1x.png"});
                             }
                         });
                     });
@@ -72,7 +78,6 @@ chrome.storage.onChanged.addListener(function(changes, area) {
 
         }
         chrome.storage.sync.set({urlsToOpen: [], currTab : "", invokedWindow : "", opnSmeTb : ""}, function() {});
-
     }
     if (chrome.runtime.error) {
         console.log("ddd Runtime error.");
@@ -80,8 +85,3 @@ chrome.storage.onChanged.addListener(function(changes, area) {
 
 });
 
-chrome.commands.onCommand.addListener(function(command) {
-    console.log('onCommand event received for message: ', command);
-
-
-});

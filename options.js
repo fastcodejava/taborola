@@ -6,6 +6,7 @@ function save_options() {
     var jsonData = document.getElementById('jsonData').value;
     var tabsBackground = document.getElementById('tabsBackground').checked;
     var highlightTabs = document.getElementById('highlightTabs').checked;
+    var selectAll = document.getElementById('selectAll').checked;
 
     if (jsonData.trim() === '') {
         return;
@@ -22,7 +23,8 @@ function save_options() {
     chrome.storage.sync.set({
             jsonData: jsonObj,
             tabsBackground: tabsBackground,
-            highlightTabs: highlightTabs},
+            highlightTabs: highlightTabs,
+            selectAll: selectAll},
         function() {
             // Update status to let user know options were saved.
             var status = document.getElementById('status');
@@ -51,10 +53,12 @@ function restore_options() {
     });
     chrome.storage.sync.get({
         tabsBackground: true,
-        highlightTabs: true
+        highlightTabs: true,
+        selectAll: true
     }, function(items) {
         document.getElementById('tabsBackground').checked = items.tabsBackground;
         document.getElementById('highlightTabs').checked = items.highlightTabs;
+        document.getElementById('selectAll').checked = items.selectAll;
     });
 }
 
