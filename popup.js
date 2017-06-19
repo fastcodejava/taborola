@@ -5,8 +5,9 @@ var tabsBackground;
 var currentUrl;
 var invokedWindow;
 var selectAll;
+var loading;
 
-var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll'];
+var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading'];
 
 /*
  var xhr = new XMLHttpRequest();
@@ -27,6 +28,8 @@ chrome.storage.sync.get( options, function(items) {
     highlightTabs = items.highlightTabs;
     tabsBackground = items.tabsBackground;
     selectAll = items.selectAll;
+    loading = items.loading;
+    console.log("in sync get" + loading);
 });
 
 function closeWindow (e) {
@@ -35,7 +38,7 @@ function closeWindow (e) {
 
 
 function clickHandler(e) {
-
+    //loading = true;
     const allUrls = document.getElementsByName("link");
     const urlsToOpen = [];
     const tabToHilite = [currentTab.index];
@@ -59,9 +62,9 @@ function clickHandler(e) {
     /*if (highlightTabs) {
      chrome.tabs.highlight({tabs: tabToHilite}, function(){});
      }*/
-    chrome.storage.sync.set({urlsToOpen: [], currTab : "", invokedWindow : "", opnSmeTb : ""}, function() {});
+    chrome.storage.sync.set({urlsToOpen: [], currTab : "", invokedWindow : "", opnSmeTb : "", loading: false}, function() {});
     var opnSmeTab = document.getElementById("sametabChkbx").checked;
-    chrome.storage.sync.set({urlsToOpen: urlsToOpen, currTab: currentTab, invokedWindow: invokedWindow, opnSmeTb: opnSmeTab}, function() {
+    chrome.storage.sync.set({urlsToOpen: urlsToOpen, currTab: currentTab, invokedWindow: invokedWindow, opnSmeTb: opnSmeTab, loading: true}, function() {
         if (chrome.runtime.error) {
             console.log("Runtime error.");
         }
@@ -73,11 +76,13 @@ function selectall () {
     const allUrls = document.getElementsByName("link");
     if (document.getElementById('selectall').checked) {
         allUrls.forEach (function (url) {
-            url.checked = true;
-            url.nextSibling.nextSibling.style.fontWeight = "bold";
-            document.getElementById("openbtn").disabled = false;
-            document.getElementById("sametab").hidden = true;
-            document.getElementById("sametabChkbx").checked = false;
+            if (currentUrl !== url.value) {
+                url.checked = true;
+                url.nextSibling.nextSibling.style.fontWeight = "bold";
+                document.getElementById("openbtn").disabled = false;
+                document.getElementById("sametab").hidden = true;
+                document.getElementById("sametabChkbx").checked = false;
+            }
         });
     } else {
         allUrls.forEach (function (url) {
@@ -96,8 +101,8 @@ function selectall () {
 function linkClick () {
     console.log(this.href);
     const opnSmeTab = document.getElementById("sametabChkbx").checked;
-    chrome.storage.sync.set({urlsToOpen: [], currTab : "", invokedWindow : "", opnSmeTb : ""}, function() {});
-    chrome.storage.sync.set({urlsToOpen: this.href, currTab: currentTab, invokedWindow: invokedWindow, opnSmeTb: opnSmeTab}, function() {
+    chrome.storage.sync.set({urlsToOpen: [], currTab : "", invokedWindow : "", opnSmeTb : "", loading: false}, function() {});
+    chrome.storage.sync.set({urlsToOpen: this.href, currTab: currentTab, invokedWindow: invokedWindow, opnSmeTb: opnSmeTab, loading : true}, function() {
         if (chrome.runtime.error) {
             console.log("Runtime error.");
         }
@@ -193,10 +198,12 @@ function addUrl() {
             console.log(JSON.stringify(items));
             var origObj = items.jsonData;
             //alert("before" + JSON.stringify(origObj));
-            var prefForDom = origObj[fullDomain];
-            if (prefForDom === undefined) {
-                prefForDom = origObj[name];
-            }
+            /*var prefForDom = origObj[fullDomain];
+             if (prefForDom === undefined) {
+             prefForDom = origObj[name];
+             }*/
+            //var prefForDom = origObj[fullDomain] || origObj[name];
+            var prefForDom = getPreferences(fullDomain, name, origObj);
 
             if (prefForDom) {
                 if (Array.isArray(prefForDom)) {
@@ -236,15 +243,24 @@ function addUrl() {
     });
 }
 
+//chrome.runtime.onMessage.addListener(messageReceived);
+/*
+ function messageReceived(msg) {
+ console.log(msg);
+ if (msg === "completed") {
+ loading = false;
+ }
+ }*/
 
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('cancelbtn').addEventListener('click', closeWindow);
     document.getElementById('openbtn').addEventListener('click', clickHandler);
     document.getElementById('selectall').addEventListener('click', selectall);
     document.getElementById('addbtn').addEventListener('click', addUrl);
-
+    console.log("lod--" + loading);
+    console.log("jsondata--" + jsonData);
     var content = document.getElementById('content');
-
+    //chrome.storage.sync.set({loading: false}, function() {});
     getCurrentTabUrl(function(tab) {
         currentUrl = tab.url;
 
@@ -257,7 +273,16 @@ document.addEventListener('DOMContentLoaded', function () {
         var domain = getDomain(currentUrl);
         var name = domain.split('.')[0];
         console.log("name --" + name);
-        var prefForDom = jsonData[url.hostname] || jsonData[name];
+        console.log("lod--" + loading);
+        console.log("jsondata--" + jsonData);
+        if (loading) {
+            window.close();
+            return;
+        }
+
+
+        var prefForDom = getPreferences(url.hostname, name); //jsonData[url.hostname] || jsonData[name];
+
         /*var prefForDom = jsonData[fullDomain];
          if (prefForDom === undefined) {
          prefForDom = jsonData[name];
@@ -297,11 +322,40 @@ document.addEventListener('DOMContentLoaded', function () {
             //document.getElementById('typeSelect').addEventListener('changed', selectOption);
         }
 
+
     });
+
 
     //console.log("margin" + document.getElementById("selectall").style.margin);
 
 });
+
+function getPreferences(url_hostname, name, dataObj) {
+    if (dataObj === undefined) {
+        dataObj = jsonData;
+    }
+    var pref = dataObj[url_hostname] || dataObj[name];
+    if (pref) {
+        return pref;
+    } else {
+        var hostNameKeys = Object.keys(dataObj);
+        hostNameKeys.forEach(function(key) {
+            if (key.indexOf(',') !== -1) {
+                var hostnameArr = key.split(',');
+                hostnameArr.forEach(function(hostname){
+                    if (url_hostname === hostname || name === hostname) {
+                        pref = dataObj[key];
+                        //return pref;
+                    }
+                });
+            }
+
+        });
+        return pref;
+    }
+
+
+}
 
 function createList(allurls) {
 
@@ -326,10 +380,12 @@ function createList(allurls) {
             var pageParts = page.split('/');
             console.log(pageParts.length);
             console.log(pageParts[pageParts.length - 1] );
-            console.log();
             linkObj = page;
             key = page.endsWith('/') ? pageParts[pageParts.length - 2] : pageParts[pageParts.length - 1];
         }
+        console.log("linkObj--" + linkObj);
+        console.log("currentUrl--" + currentUrl);
+
         var input = document.createElement("INPUT");
         //var linkObj = Object.values(page)[0];
         input.setAttribute("type", "checkbox");
@@ -352,6 +408,7 @@ function createList(allurls) {
         label.htmlFor = id;
 
         if (typeof linkObj === 'object') {
+            console.log("in if");
             input.setAttribute("value", linkObj.url);
             input.setAttribute("Alt", linkObj.alt);
             if (currentUrl !== linkObj && linkObj.selected !== false && selectAll) {
@@ -359,9 +416,10 @@ function createList(allurls) {
                 label.style.fontWeight = "bold";
             }
         } else {
+            console.log("in else");
             input.setAttribute("value", linkObj);
             input.setAttribute("Alt", linkObj);
-            if (currentUrl !== linkObj[0] && selectAll) {
+            if (currentUrl !== linkObj && selectAll) {
                 input.setAttribute("checked", true);
                 label.style.fontWeight = "bold";
             }
@@ -473,3 +531,4 @@ function getCurrentTabUrl(callback) {
     });
 
 }
+  

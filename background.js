@@ -39,10 +39,11 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                         var firstPage = tab.id;
                         var lastTab = tab.id;
                         console.log("reset");
-                        chrome.browserAction.setIcon({path:"icons/ic_loop_black_24dp_1x.png"});
+                        // chrome.browserAction.setIcon({path:"icons/ajax-loader.gif"});
+                        rotateIcon();
                         chrome.tabs.onUpdated.addListener(function(tabId , info) {
-                            console.log(tabId + "" + JSON.stringify(info));
-                            console.log("urls ln" + urls.length);
+                            //console.log(tabId + "" + JSON.stringify(info));
+                            //console.log("urls ln" + urls.length);
                             if (info.status === "complete"  && tabId === lastTab && urls.length > 1) {
                                 //console.log("length" + urls.length);
                                 chrome.tabs.update(firstPage, {active: true});
@@ -55,6 +56,9 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                             }
                             if (info.status === "complete"  &&  tabId === lastTab && urls.length == 1) {
                                 chrome.browserAction.setIcon({path:"icons/ic_title_black_24dp_1x.png"});
+                                //chrome.runtime.sendMessage({msg: "completed"}, function(response) {});
+                                chrome.storage.sync.set({loading: false}, function() {});
+                                keep_switching_icon = false;
                             }
                         });
                     });
@@ -85,3 +89,20 @@ chrome.storage.onChanged.addListener(function(changes, area) {
 
 });
 
+var loading_images = ['ajax-loader_LB.gif',
+    'ajax-loader_LT.gif',
+    'ajax-loader_RT.gif',
+    'ajax-loader_RB.gif'];
+
+var image_index = 0;
+
+var keep_switching_icon = true;
+function rotateIcon()
+{
+    if ( keep_switching_icon )
+    {
+        chrome.browserAction.setIcon({path: "icons/" + loading_images[image_index] });
+        image_index = (image_index + 1) % loading_images.length;
+        window.setTimeout(rotateIcon, 300);
+    }
+}
