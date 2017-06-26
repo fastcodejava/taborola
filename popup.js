@@ -391,6 +391,10 @@ function createList(allurls) {
         input.setAttribute("type", "checkbox");
         input.setAttribute("value", linkObj);
         input.setAttribute("name", "link");
+        if (currentUrl === linkObj) {
+            key =  key + "(Current Tab)";
+            console.log("kkk"+key);
+        }
         var id = key; //Object.keys(page)[0];
         input.setAttribute("id", id);
         input.onclick = chkBoxClick;
@@ -414,6 +418,8 @@ function createList(allurls) {
             if (currentUrl !== linkObj && linkObj.selected !== false && selectAll) {
                 input.setAttribute("checked", true);
                 label.style.fontWeight = "bold";
+            } else {
+                console.log("llll" + label.getText);
             }
         } else {
             console.log("in else");
@@ -422,6 +428,8 @@ function createList(allurls) {
             if (currentUrl !== linkObj && selectAll) {
                 input.setAttribute("checked", true);
                 label.style.fontWeight = "bold";
+            } else {
+                console.log("llll" + label.getText);
             }
         }
 
@@ -449,8 +457,6 @@ function createList(allurls) {
         }
     });
     return list;
-
-
 }
 
 function selectOption() {
@@ -467,7 +473,7 @@ function selectOption() {
     var url = new URL(currentUrl);
 
     var allTypes = jsonData[url.hostname] || jsonData[type.name];
-    if (Array.isArray(allTypes[selectedType])){
+    if (Array.isArray(allTypes[selectedType])) {
         content.appendChild(createList(allTypes[selectedType]));
     }
 }
@@ -531,4 +537,3 @@ function getCurrentTabUrl(callback) {
     });
 
 }
-  

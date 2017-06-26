@@ -7,10 +7,34 @@ var currWindow;
 
 var options = ['tabsBackground', 'highlightTabs'];
 
+
+var loading_images = ['ajax-loader_LB.gif',
+    'ajax-loader_LT.gif',
+    'ajax-loader_RT.gif',
+    'ajax-loader_RB.gif'];
+
+var image_index = 0;
+
+var keep_switching_icon;
+
+function rotateIcon(rotate)
+{
+    keep_switching_icon = rotate === undefined ? keep_switching_icon : rotate;
+    if ( keep_switching_icon )
+    {
+        chrome.browserAction.setIcon({path: "icons/" + loading_images[image_index] });
+        image_index = (image_index + 1) % loading_images.length;
+        window.setTimeout(rotateIcon, 300);
+    } else {
+        chrome.browserAction.setIcon({path: "icons/ic_title_black_24dp_1x.png"});
+    }
+}
+
 chrome.storage.sync.get( options, function(items) {
     highlightTabs = items.highlightTabs;
     tabsBackground = items.tabsBackground;
 });
+
 chrome.windows.getCurrent(function(win){
     currWindow = win.id;
 });
@@ -39,8 +63,7 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                         var firstPage = tab.id;
                         var lastTab = tab.id;
                         console.log("reset");
-                        // chrome.browserAction.setIcon({path:"icons/ajax-loader.gif"});
-                        rotateIcon();
+                        rotateIcon(true);
                         chrome.tabs.onUpdated.addListener(function(tabId , info) {
                             //console.log(tabId + "" + JSON.stringify(info));
                             //console.log("urls ln" + urls.length);
@@ -55,10 +78,8 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                                 });
                             }
                             if (info.status === "complete"  &&  tabId === lastTab && urls.length == 1) {
-                                chrome.browserAction.setIcon({path:"icons/ic_title_black_24dp_1x.png"});
-                                //chrome.runtime.sendMessage({msg: "completed"}, function(response) {});
                                 chrome.storage.sync.set({loading: false}, function() {});
-                                keep_switching_icon = false;
+                                rotateIcon(false);
                             }
                         });
                     });
@@ -67,9 +88,11 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                     chrome.tabs.create({url: urls, active : !tabsBackground, index: parseInt(openAt), windowId : invokedWind}, function(tab){
                         tabToHilite.push(tab.index);
                     });
+                    chrome.storage.sync.set({loading: false}, function() {});
                 }
             } else {
                 chrome.tabs.update(changes.currTab.newValue.id, {url: urls[0]});
+                chrome.storage.sync.set({loading: false}, function() {});
             }
 
             if (highlightTabs) {
@@ -89,20 +112,3 @@ chrome.storage.onChanged.addListener(function(changes, area) {
 
 });
 
-var loading_images = ['ajax-loader_LB.gif',
-    'ajax-loader_LT.gif',
-    'ajax-loader_RT.gif',
-    'ajax-loader_RB.gif'];
-
-var image_index = 0;
-
-var keep_switching_icon = true;
-function rotateIcon()
-{
-    if ( keep_switching_icon )
-    {
-        chrome.browserAction.setIcon({path: "icons/" + loading_images[image_index] });
-        image_index = (image_index + 1) % loading_images.length;
-        window.setTimeout(rotateIcon, 300);
-    }
-}
