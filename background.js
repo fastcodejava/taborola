@@ -20,13 +20,12 @@ var keep_switching_icon;
 function rotateIcon(rotate)
 {
     keep_switching_icon = rotate === undefined ? keep_switching_icon : rotate;
+    chrome.browserAction.setIcon({path: keep_switching_icon ? "icons/" + loading_images[image_index] : "icons/ic_title_black_24dp_1x.png"});
+
     if ( keep_switching_icon )
     {
-        chrome.browserAction.setIcon({path: "icons/" + loading_images[image_index] });
         image_index = (image_index + 1) % loading_images.length;
         window.setTimeout(rotateIcon, 300);
-    } else {
-        chrome.browserAction.setIcon({path: "icons/ic_title_black_24dp_1x.png"});
     }
 }
 
