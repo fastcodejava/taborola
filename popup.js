@@ -334,26 +334,51 @@ function getPreferences(url_hostname, name, dataObj) {
     if (dataObj === undefined) {
         dataObj = jsonData;
     }
-    var pref = dataObj[url_hostname] || dataObj[name];
-    if (pref) {
-        return pref;
-    } else {
-        var hostNameKeys = Object.keys(dataObj);
-        hostNameKeys.forEach(function(key) {
-            if (key.indexOf(',') !== -1) {
-                var hostnameArr = key.split(',');
-                hostnameArr.forEach(function(hostname){
+    /*var pref = dataObj[url_hostname] || dataObj[name];
+     if (pref) {
+     return pref;
+     } else {
+     var hostNameKeys = Object.keys(dataObj);
+     hostNameKeys.forEach(function(key) {
+     if (key.indexOf(',') !== -1) {
+     var hostnameArr = key.split(',');
+     hostnameArr.forEach(function(hostname){
+     if (url_hostname === hostname || name === hostname) {
+     pref = dataObj[key];
+     //return pref;
+     }
+     });
+     }
+
+     });
+     return pref;
+     }*/
+    //console.log(JSON.stringify(dataObj));
+    for(var item in dataObj) {
+        var domain,pref;
+        domain = dataObj[item]['current'];
+        if (domain === url_hostname || domain === name) {
+            pref = dataObj[item]['sites'];
+        }
+
+        if (pref) {
+            return pref;
+        } else {
+            if (domain.indexOf(',') !== -1) {
+                var domArr = domain.split(',');
+                domArr.forEach(function(hostname){
                     if (url_hostname === hostname || name === hostname) {
-                        pref = dataObj[key];
+                        pref = dataObj[item]['sites'];
                         //return pref;
                     }
                 });
             }
 
-        });
-        return pref;
-    }
+        }
+        //console.log(dataObj[item]['current']);
 
+    }
+    return pref;
 
 }
 
@@ -457,6 +482,8 @@ function createList(allurls) {
         }
     });
     return list;
+
+
 }
 
 function selectOption() {
@@ -473,7 +500,7 @@ function selectOption() {
     var url = new URL(currentUrl);
 
     var allTypes = jsonData[url.hostname] || jsonData[type.name];
-    if (Array.isArray(allTypes[selectedType])) {
+    if (Array.isArray(allTypes[selectedType])){
         content.appendChild(createList(allTypes[selectedType]));
     }
 }
@@ -535,5 +562,4 @@ function getCurrentTabUrl(callback) {
     chrome.windows.getCurrent(function(currentWindow) {
         invokedWindow = currentWindow.id;
     });
-
 }

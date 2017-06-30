@@ -64,6 +64,13 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                         var lastTab = tab.id;
                         console.log("reset");
                         rotateIcon(true);
+                        chrome.tabs.onRemoved.addListener(function (tabId , info) {
+                            if (tabId === lastTab) {
+                                chrome.storage.sync.set({loading: false}, function() {});
+                                rotateIcon(false);
+                            }
+                        });
+
                         chrome.tabs.onUpdated.addListener(function(tabId , info) {
                             //console.log(tabId + "" + JSON.stringify(info));
                             //console.log("urls ln" + urls.length);
