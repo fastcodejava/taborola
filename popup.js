@@ -373,7 +373,6 @@ function getPreferences(url_hostname, name, dataObj) {
                     }
                 });
             }
-
         }
         //console.log(dataObj[item]['current']);
 
@@ -499,7 +498,8 @@ function selectOption() {
     //var allTypes = jsonData[type.name];
     var url = new URL(currentUrl);
 
-    var allTypes = jsonData[url.hostname] || jsonData[type.name];
+    // var allTypes = jsonData[url.hostname] || jsonData[type.name];
+    var allTypes = getPreferences(url.hostname, name); //jsonData[url.hostname] || jsonData[name];
     if (Array.isArray(allTypes[selectedType])){
         content.appendChild(createList(allTypes[selectedType]));
     }
