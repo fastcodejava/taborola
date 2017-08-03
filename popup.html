@@ -4,7 +4,7 @@
  "browser_action" field in manifest.json contains the "default_popup" key with
  value "popup.html".
  -->
-<html>
+<html >
 <head>
     <title>Select pages to view</title>
     <style>
@@ -15,35 +15,37 @@
 
 
     </style>
-    <link rel="stylesheet" href="/css/myStyles.css">
+    <!--<link rel="stylesheet" href="/css/myStyles.css">-->
     <script src="./popup.js"></script>
 
 </head>
-<body style="width:300px;">
-<form >
-    <div id="mainStuff" style="height:200px;">
-        <input type="checkbox" id="selectall" value="selectall" style="margin-left:25px;">All</input>
-        <div id="content" style="width:200px;align:left"></div>
-        <div id="sametab" hidden><input type="checkbox"  id="sametabChkbx" value="sametab" style="margin-left:25px;"><font size="2" >Open in Same Tab</font></input></div>
-        <input type="button" id="openbtn" value="Open" style="margin-left:25px ;" accesskey="o"/>
-        <input type="button" id="cancelbtn" value="Cancel" accesskey="x"/>
-        <input type="button" id="addbtn" value="Add" style="margin-left:25px ;" accesskey="a"/> <!--hidden = "hidden"-->
-        <a href="#" class="myButton">Open</a>
-        <div id="status"></div>
-    </div>
-    <div id="adStuff" style="height:50px;">
-        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-        <!-- Google -->
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-5319089954294796"
-             data-ad-slot="6208539460"
-             data-ad-format="auto"></ins>
-        <script>
-            (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
-</form>
+<body id="body" style="width:300px;max-height:80%;">
+<div id="adStuff" style="height:10%;">
+    <font size="-2">Advertisement</font> <br>
+</div>
+<hr>
+<div id="mainStuff" style="height:90%;">
+    <label>
+        <input type="checkbox" id="selectall" value="selectall" style="margin-left:25px;"/>
+        All
+    </label>
+    <div id="howmany" ></div>
+    <div id="content" style="width:200px;align:left"></div>
+    <div id="sametab" hidden><input type="checkbox"  id="sametabChkbx" value="sametab" style="margin-left:25px;"><font size="2" >Open in Same Tab</font></input></div>
+    <!--<p>Click the button to sort the list ascending (A to Z):</p>
+    <p>Click again to sort the list descending (Z to A):</p> -->
+
+    <input type="button" id="sortListDir" value="Sort A to Z" style="margin-left:25px ;"/>
+    <br>
+    <input type="button" id="openbtn" value="Open" style="margin-left:25px ;" accesskey="o"/>
+    <input type="button" id="cancelbtn" value="Cancel" accesskey="x"/>
+    <input type="button" id="addbtn" value="Add"  accesskey="a"/> <!--hidden = "hidden"-->
+    <!--<a href="#" class="myButton">Open</a>-->
+    <input type="button" id="searchAgain" value="Search Again"  accesskey="g" />
+    <div id="status"></div>
+</div>
+
+
 
 
 </body>
