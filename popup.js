@@ -11,9 +11,11 @@ var parentUrl;
 var utubeData;
 var searchPage;
 var queryString;
+var searchSites;
+var searchEngine;
 
-var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString'];
-var google = ['www.google.co.in', 'www.google.com'];
+var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString', 'searchEngine'];
+var google = ['www.google.co.in', 'www.google.com', 'search.yahoo.com', 'www.bing.com'];
 
 
 
@@ -27,9 +29,12 @@ chrome.storage.sync.get( options, function(items) {
     googleSearch = items.googleSearch;
     parentUrl = items.parentUrl;
     queryString = items.queryString;
+    //searchSites = items.searchSites;
+    searchEngine = items.searchEngine;
 });
 
 function closeWindow (e) {
+
     window.close();
 }
 
@@ -49,7 +54,12 @@ function clickHandler(e) {
                 tabToHilite.push(tab.index);
                 openAt ++;
             });*/
-
+            var itemValue = url.value;
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
+                    console.log(response.farewell);
+                });
+            });
 
         } else {
             console.log("came till here in else");
@@ -82,10 +92,33 @@ function selectall () {
                 document.getElementById("sametabChkbx").checked = false;
             }
             parentNode = url.parentNode.parentNode.childNodes;
+            console.log("kkkkkk-" + url.value);
+            var itemValue = url.value;
+            if (searchPage) {
+                chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                    chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
+                        console.log(response.farewell);
+                    });
+                });
+            }
+
         });
         var howmany = document.getElementById("howmany");
         var selNums = howManyChecked(parentNode);
         howmany.textContent = selNums + " selected.";
+        if (selNums > 0) {
+            if (document.getElementById('searchAgain')) {
+                document.getElementById('searchAgain').disabled = true;
+            }
+
+            if (document.getElementById('searchbtn')) {
+                document.getElementById('searchbtn').disabled = true;
+                document.getElementById('searchTextBox').disabled = true;
+            }
+            document.getElementsByName('site')[0].disabled = true;
+            document.getElementsByName('site')[1].disabled = true;
+            document.getElementsByName('site')[2].disabled = true;
+        }
     } else {
         allUrls.forEach (function (url) {
             url.checked = false;
@@ -94,9 +127,30 @@ function selectall () {
             document.getElementById("openbtn").disabled = true;
             document.getElementById("sametab").hidden = true;
             document.getElementById("sametabChkbx").checked = false;
+            var itemValue = url.value;
+            if (searchPage) {
+                chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                    chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
+                        console.log(response.farewell);
+                    });
+                });
+            }
+
         });
         var howmany = document.getElementById("howmany");
-        howmany.textContent = "";
+        howmany.textContent = "0 selected.";
+        if (document.getElementById('searchAgain')) {
+            document.getElementById('searchAgain').disabled = false;
+        }
+
+        if (document.getElementById('searchbtn')) {
+            document.getElementById('searchbtn').disabled = false;
+            document.getElementById('searchTextBox').disabled = false;
+        }
+        document.getElementsByName('site')[0].disabled = false;
+        document.getElementsByName('site')[1].disabled = false;
+        document.getElementsByName('site')[2].disabled = false;
+        //document.getElementById('searchAgain').disabled = false;
     }
 
 
@@ -111,13 +165,14 @@ function linkClick () {
             console.log("Runtime error.");
         }
     });
-    window.close;
+    window.close();
 }
 
 function chkBoxClick (ele) {
     console.log(this.labels[0].innerHTML);
     var currNode = this;
     var none = true;
+    var selectedArray = [];
     if (this.checked) {
         this.labels[0].style.fontWeight = "bold";
         document.getElementById("openbtn").disabled = false;
@@ -139,6 +194,35 @@ function chkBoxClick (ele) {
             document.getElementById("sametab").hidden = true;
             document.getElementById("sametabChkbx").checked = false;
         }
+
+        console.log("li value-" + this.value);
+        /*selectedArray.push(this.value);
+        this.parentNode.parentNode.childNodes.forEach(function (li){
+            if (currNode !== li.childNodes[0] && li.childNodes[0].checked) {
+                selectedArray.push(li.childNodes[0].value);
+            }
+        });*/
+        var itemValue = this.value;
+        if (searchPage) {
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
+                    console.log(response.farewell);
+                });
+            });
+        }
+
+        if (document.getElementById('searchAgain')) {
+            document.getElementById('searchAgain').disabled = true;
+        }
+
+        if (document.getElementById('searchbtn')) {
+            document.getElementById('searchbtn').disabled = true;
+            document.getElementById('searchTextBox').disabled = true;
+        }
+        document.getElementsByName('site')[0].disabled = true;
+        document.getElementsByName('site')[1].disabled = true;
+        document.getElementsByName('site')[2].disabled = true;
+        //document.getElementById('searchAgain').disabled = true;
     } else {
         this.labels[0].style.fontWeight="normal";
         document.getElementById("openbtn").disabled = true;
@@ -155,10 +239,54 @@ function chkBoxClick (ele) {
             document.getElementById("sametab").hidden = false;
             document.getElementById("sametabChkbx").checked = true;
         }
+
+        var itemValue = this.value;
+        if (searchPage) {
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
+                    console.log(response.farewell);
+                });
+            });
+        }
+
     }
     var howmany = document.getElementById("howmany");
     var selNums = howManyChecked(this.parentNode.parentNode.childNodes);
     howmany.textContent = selNums + " selected.";
+    if (selNums === 0) {
+        if (document.getElementById('searchAgain')) {
+            document.getElementById('searchAgain').disabled = false;
+        }
+
+        if (document.getElementById('searchbtn')) {
+            document.getElementById('searchbtn').disabled = false;
+            document.getElementById('searchTextBox').disabled = false;
+        }
+        document.getElementsByName('site')[0].disabled = false;
+        document.getElementsByName('site')[1].disabled = false;
+        document.getElementsByName('site')[2].disabled = false;
+        //document.getElementById('searchAgain').disabled = false;
+    } else {
+        if (document.getElementById('searchAgain')) {
+            document.getElementById('searchAgain').disabled = true;
+        }
+
+        if (document.getElementById('searchbtn')) {
+            document.getElementById('searchbtn').disabled = true;
+            document.getElementById('searchTextBox').disabled = true;
+        }
+        document.getElementsByName('site')[0].disabled = true;
+        document.getElementsByName('site')[1].disabled = true;
+        document.getElementsByName('site')[2].disabled = true;
+        //document.getElementById('searchAgain').disabled = true;
+    }
+    if (selNums < this.parentNode.parentNode.childNodes.length) {
+        document.getElementById('selectall').checked = false;
+    }
+    if (selNums === this.parentNode.parentNode.childNodes.length) {
+        document.getElementById('selectall').checked = true;
+    }
+    //console.log("len--" + this.parentNode.parentNode.childNodes.length);
 }
 
 function howManyChecked(liNodes) {
@@ -205,12 +333,13 @@ function addUrl() {
         var url = new URL(tab.url);
         var fullDomain = url.hostname;
         console.log("dom-" + fullDomain);
-        var hostNameArray = fullDomain.split(".");
+        /*var hostNameArray = fullDomain.split(".");
 
-        console.log(hostNameArray.length);
-        var domain = getDomain(currentUrl);
-        var name = domain.split('.')[0];
-        //var jsonObj = {};
+       console.log(hostNameArray.length);
+       var domain = getDomain(currentUrl);
+       var name = hostNameArray[1];//domain.split('.')[0];
+       //var jsonObj = {};*/
+        var name = getDomainName(tab.url);
 
         chrome.storage.sync.get( "jsonData", function(items) {
             console.log(JSON.stringify(items));
@@ -276,9 +405,60 @@ function messageReceived(msg) {
 }*/
 
 function searchAgain () {
-    //queryString
-    chrome.tabs.update(currentTab.id, {url: queryString});
-    window.close;
+    var urlSite = '';
+    //var url = new URL(currentUrl);
+    //var fullDomain = url.hostname;
+    //console.log(queryString);
+    //console.log(url.hostname);
+    //urlSite = queryString + '%20site:' + url.hostname;
+    //console.log(urlSite);
+
+    var selectedSite = getSearchSite();
+    var selSiteArr;
+    var idx = currentTab.index + 1;
+    //window.close;
+    if (selectedSite.indexOf(',') > -1) {
+        selSiteArr = selectedSite.split(',');
+        selSiteArr.forEach(function(selSite){
+            if (selSite.indexOf('yahoo') > -1) {
+                urlSite = selSite + 'search;?p=' + queryString;
+            } else {
+                urlSite = selSite + 'search?q=' + queryString;
+            }
+
+            chrome.tabs.create({url: urlSite, active : false, index: parseInt(idx), windowId : invokedWindow}, function(tab) {
+                idx ++;
+            });
+        });
+    } else {
+        if (selectedSite.indexOf('yahoo') > -1) {
+            urlSite = selectedSite + 'search;?p=' + queryString;
+        } else {
+            urlSite = selectedSite + 'search?q=' + queryString;
+        }
+        chrome.tabs.create({url: urlSite, active : false, index: parseInt(currentTab.index + 1), windowId : invokedWindow}, function(tab) {
+
+        });
+        //chrome.tabs.update(currentTab.id, {url: urlSite});
+    }
+
+    window.close();
+}
+
+function getSearchSite() {
+    var selectedSite;
+    var site = document.getElementsByName("site");
+    for(var i = 0; i < site.length; i++) {
+        if(site[i].checked) {
+            selectedSite = site[i].value;
+
+            if (!selectedSite.endsWith('/')) {
+                selectedSite = selectedSite + '/';
+            }
+        }
+    }
+
+    return selectedSite;
 }
 
 function sortListDir() {
@@ -338,12 +518,53 @@ function sortListDir() {
 
 
 function chngSortBtnValue() {
-    var sortBtn = document.getElementById('sortListDir');
-    if (sortBtn.value === "Sort A to Z") {
-        sortBtn.value = "Sort Z to A";
-    } else if (sortBtn.value === "Sort Z to A") {
-        sortBtn.value = "Sort A to Z";
+    var sortImg = document.getElementById('sortListDir');
+    console.log(sortImg.getAttribute('src'));
+    if (sortImg.getAttribute('src') === "./icons/Small_A_Z.jpg") {
+        //sortImg.nextSibling.textContent = "Sort Z to A";
+        sortImg.setAttribute('src', './icons/Small_Z_A.jpg');
+    } else if (sortImg.getAttribute('src') === "./icons/Small_Z_A.jpg") {
+        //sortImg.nextSibling.textContent = "Sort A to Z";
+        sortImg.setAttribute('src', './icons/Small_A_Z.jpg');
     }
+}
+
+function searchInSite (queryString) {
+    var urlSite = '';
+    var searchText = document.getElementById('searchTextBox').value;
+    console.log(searchText);
+    if (searchText) {
+        var url = new URL(currentUrl);
+
+        var selectedSite = getSearchSite();
+
+        /*var site = document.getElementsByName("site");
+        for(var i = 0; i < site.length; i++) {
+           if(site[i].checked) {
+               selectedSite = site[i].value;
+               if (!selectedSite.endsWith('/')) {
+                   selectedSite = selectedSite + '/';
+               }
+           }
+
+
+         } */
+        if (selectedSite.indexOf('yahoo') > -1) {
+            urlSite = selectedSite + 'search;?p=' + searchText + '%20site:' + url.hostname;
+        } else {
+            urlSite = selectedSite + 'search?q=' + searchText + '%20site:' + url.hostname;
+        }
+
+        chrome.tabs.update(currentTab.id, {url: urlSite});
+
+    }
+    //var url = new URL(currentUrl);
+    //var fullDomain = url.hostname;
+    //console.log(queryString);
+    //console.log(url.hostname);
+    //urlSite = queryString + '%20site:' + url.hostname;
+    //console.log(urlSite);
+    window.close();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -355,8 +576,9 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('openbtn').addEventListener('click', clickHandler);
     document.getElementById('selectall').addEventListener('click', selectall);
     document.getElementById('addbtn').addEventListener('click', addUrl);
-    document.getElementById('searchAgain').addEventListener('click', searchAgain);
+    //document.getElementById('searchAgain').addEventListener('click', searchAgain);
     document.getElementById('sortListDir').addEventListener('click', sortListDir);
+    //document.getElementById('searchbtn').addEventListener('click', searchInSite);
     onclick="()"
     console.log("lod--" + loading);
     console.log("jsondata--" + jsonData);
@@ -377,7 +599,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         console.log(hostNameArray.length);
         var domain = getDomain(currentUrl);
-        var name = domain.split('.')[0];
+        var name = getDomainName(tab.url); //hostNameArray[1]; //domain.split('.')[0];
+        console.log("currentUrl --" + currentUrl);
         console.log("name --" + name);
         console.log("lod--" + loading);
         console.log("jsondata--" + jsonData);
@@ -396,30 +619,47 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('openbtn').hidden = "hidden";
                 //document.getElementById('cancelbtn').hidden = "hidden";
                 document.getElementById('selectall').hidden = "hidden";
-                console.log(document.getElementById('selectall').nextSibling.nodeValue + "fff");
                 document.getElementById('selectall').nextSibling.nodeValue = "";
                 document.getElementById('sortListDir').hidden = "hidden";
-                document.getElementById('searchAgain').hidden = "hidden";
+                console.log(document.getElementById('sortListDir').nextSibling.nodeValue + "fffk");
+
+                document.getElementById('sortListDir').nextSibling.nodeValue = "";
+                //document.getElementById('searchAgain').hidden = "hidden";
                 //document.getElementById('addbtn').hidden = "";
                 content.appendChild(text);
+                return;
 
             }
             console.log("Check1 " + JSON.stringify(googleSearch));
             prefForDom = googleSearch;
             console.log("check2-" + prefForDom + "-");
             document.getElementById('addbtn').hidden = "hidden";
+            //document.getElementById('searchbtn').hidden = "hidden";
+            //document.getElementById('searchText').hidden = "hidden";
             content.style.width = "600px";
-            document.getElementById('body').style.width = "600px";
+            document.getElementById('body').style.width = "603px";
             searchPage = true;
             if (googleSearch === "") {
-                console.log("google seach list is empty");
+                console.log("Search list is empty");
             }
+            var div = document.createElement('div');
+            div.setAttribute("align", "center");
+            var engineLogo = document.createElement("IMG");
+            engineLogo.setAttribute("src", 'chrome://favicon/'+ searchEngine);
+            engineLogo.style.cssFloat   = 'middle';
+            div.appendChild(engineLogo);
+            var domain = getDomain(searchEngine);
+            var engineName = new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
+
+            var searchEngineTxt = document.createTextNode(" " + engineName + " results.");
+            div.appendChild(searchEngineTxt);
+            content.appendChild(div);
         }
 
         if (prefForDom === undefined) {
             prefForDom = getPreferences(url.hostname, name); //jsonData[url.hostname] || jsonData[name];
             //content.style.width = "200px";
-            document.getElementById('searchAgain').hidden = "hidden";
+            //ocument.getElementById('searchAgain').hidden = "hidden";
             searchPage = false;
         }
 
@@ -449,15 +689,15 @@ document.addEventListener('DOMContentLoaded', function () {
             if (selectAll) {
                 document.getElementById('selectall').checked = true;
             }
+            createRadio(content);
         } else {
             var text = document.createTextNode("Domain not set in preference.");
             document.getElementById('openbtn').hidden = "hidden";
-            document.getElementById('cancelbtn').hidden = "hidden";
+            //document.getElementById('cancelbtn').hidden = "hidden";
             document.getElementById('selectall').hidden = "hidden";
-            console.log(document.getElementById('selectall').nextSibling.nodeValue + "fff");
             document.getElementById('selectall').nextSibling.nodeValue = "";
             document.getElementById('sortListDir').hidden = "hidden";
-
+            document.getElementById('sortListDir').nextSibling.nodeValue = "";
             //document.getElementById('addbtn').hidden = "";
             content.appendChild(text);
             //document.getElementById('typeSelect').addEventListener('changed', selectOption);
@@ -469,7 +709,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', chrome.extension.getURL('utube.json'));
+    xhr.open('GET', chrome.extension.getURL('youtube.json'));
     xhr.responseType = "text";
 
     xhr.onreadystatechange = function() {
@@ -511,6 +751,123 @@ document.addEventListener('DOMContentLoaded', function () {
     //console.log("margin" + document.getElementById("selectall").style.margin);
 
 });
+
+function createRadio(content) {
+    var engDom = getDomain(searchEngine);
+    //var engine = engDom.split('.')[0];
+    var engineUrl = new URL(searchEngine);
+    console.log("url hostname eng-" + engineUrl.hostname);
+    var engine = getDomainName(searchEngine); //engineUrl.hostname.split('.')[1];
+    var sitesArr = ['https://www.google.com/', 'https://search.yahoo.com/', 'http://www.bing.com/']; //searchSites.split(',');
+
+    var searchContent = document.getElementById('searchContent');
+
+    var searchDiv = document.createElement('searchDiv');
+    searchDiv.id = "searchDiv";
+    searchDiv.style.margin = "0px 0px 0px 25px";
+    searchDiv.style.width = '300px';
+
+    var searchLbl = document.createElement('label');
+    searchLbl.innerHTML = "search in";
+    searchLbl.style.marginLeft = "25px";
+    searchContent.appendChild(searchLbl);
+    var br = document.createElement('br');
+    searchContent.appendChild(br);
+    /*var margin = true;*/
+
+    var both;
+
+    sitesArr.forEach(function (site) {
+        var url = new URL(site);
+        console.log("url hostname-" + url.hostname);
+        var name = getDomainName(site);//url.hostname.split('.')[1];
+        //var domain = getDomain(site);
+        //var name = domain.split('.')[0];
+        console.log("name " + name);
+        console.log("engg " + engine);
+        if (searchPage && name === engine) {
+            return;
+        }
+
+        both = both ? both + "," + site :  site;
+        console.log("both " + both);
+        var radio = document.createElement("INPUT");
+        radio.setAttribute("type", "radio");
+        radio.setAttribute("value", site);
+        radio.setAttribute("name", "site");
+        selectAll ? radio.disabled = true : radio.disabled = false;
+        //radio.setAttribute("id", "site");
+        //radio.style.marginLeft = "10px";
+        console.log("site " + site);
+        console.log("eng " + searchEngine);
+        /*var url = new URL(site);
+        var fullDomain = url.hostname;*/
+        var label = document.createElement("label");
+        label.innerHTML = name;
+        //content.appendChild(radio);
+        //content.appendChild(label);
+        searchDiv.appendChild(radio);
+        searchDiv.appendChild(label);
+        searchContent.appendChild(searchDiv);
+
+
+    });
+
+
+    var searchAgainBtn = document.createElement('input');
+    searchAgainBtn.setAttribute("type", "button");
+    selectAll ? searchAgainBtn.disabled = true : searchAgainBtn.disabled = false;
+    if (searchPage) {
+        var radio = document.createElement("INPUT");
+        radio.setAttribute("type", "radio");
+        radio.setAttribute("value", both);
+        radio.setAttribute("name", "site");
+        selectAll ? radio.disabled = true : radio.disabled = false;
+        //radio.setAttribute("id", "site");
+        var label = document.createElement("label");
+        label.innerHTML = "Both";
+        //content.appendChild(radio);
+        //content.appendChild(label);
+        searchDiv.appendChild(radio);
+        searchDiv.appendChild(label);
+        searchAgainBtn.setAttribute("id", "searchAgain");
+        searchAgainBtn.setAttribute("value", "Search Again");
+        searchAgainBtn.onclick = searchAgain;
+    } else {
+        var searchAgainTxt = document.createElement('input');
+        searchAgainTxt.setAttribute("type", "text");
+        searchAgainTxt.setAttribute("id", "searchTextBox");
+        selectAll ? searchAgainTxt.disabled = true : searchAgainTxt.disabled = false;
+        searchAgainTxt.style.marginLeft = "25px";
+        searchDiv.appendChild(searchAgainTxt);
+        searchAgainBtn.setAttribute("id", "searchbtn");
+        searchAgainBtn.setAttribute("value", "Search");
+        searchAgainBtn.onclick = searchInSite;
+    }
+    searchAgainBtn.style.marginLeft = '2px';
+    searchDiv.appendChild(searchAgainBtn);
+
+    searchContent.appendChild(searchDiv);
+
+    /*if (selectAll) {
+        const allUrls = document.getElementsByName("link");
+        if (allUrls.length > -1) {
+            if (howManyChecked(allUrls[0].parentNode.parentNode.childNodes)) {
+                //radio.disabled = true;
+                searchAgainBtn.disabled = true;
+                document.getElementsByName('site')[0].style.disabled = true;
+                document.getElementsByName('site')[1].style.disabled = true;
+                document.getElementsByName('site')[2].style.disabled = true;
+                if (!searchPage) {
+                    document.getElementById('searchTextBox').style.disabled = true;
+                }
+            }
+
+        }
+    }*/
+
+
+}
 
 function randomIntFromInterval(min,max)
 {
@@ -580,7 +937,7 @@ function createList(allurls) {
 
     var i=1;
     var value="";
-    var bgColor = "#F4F6F7";
+    var bgColor = "#EDEEED"; //"#F4F6F7";
     allurls.forEach(function(page) {
         console.log("in createList " + JSON.stringify(page));
         //console.log(Object.keys(page));
@@ -635,6 +992,12 @@ function createList(allurls) {
             if (currentUrl !== linkObj && linkObj.selected !== false && selectAll) {
                 input.setAttribute("checked", true);
                 label.style.fontWeight = "bold";
+                var itemValue = input.value;
+                chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                    chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
+                        console.log(response.farewell);
+                    });
+                });
             } else {
                 console.log("llll" + label.getText);
             }
@@ -645,6 +1008,12 @@ function createList(allurls) {
             if (currentUrl !== linkObj && selectAll) {
                 input.setAttribute("checked", true);
                 label.style.fontWeight = "bold";
+                var itemValue = input.value;
+                chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                    chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
+                        console.log(response.farewell);
+                    });
+                });
             } else {
                 console.log("llll" + label.getText);
             }
@@ -667,12 +1036,18 @@ function createList(allurls) {
         //list.appendChild(label);
         //var line = document.createElement('br');
         //list.appendChild(line);
-        if (bgColor === "#F4F6F7") {//ECF0F1
+        if (bgColor === "#EDEEED") {//ECF0F1 //"#F4F6F7"
             bgColor = "#FFFFFF";
         } else {
-            bgColor = "#F4F6F7";
+            bgColor = "#EDEEED"; //"#F4F6F7";
         }
     });
+    var howmany = document.getElementById("howmany");
+    if (selectAll) {
+        howmany.textContent = allurls.length + " selected.";
+    } else {
+        howmany.textContent = "0 selected.";
+    }
     return list;
 
 
@@ -720,7 +1095,9 @@ function createDropDown (data, hierarchy) {
 
 }
 
+
 function getDomain(url, subdomain) {
+    //var isSubdom = isSubdomain(url);
     subdomain = subdomain || false;
 
     url = url.replace(/(https?:\/\/)?(www.)?/i, '');
@@ -729,6 +1106,7 @@ function getDomain(url, subdomain) {
         url = url.split('.');
 
         url = url.slice(url.length - 2).join('.');
+
     }
 
     if (url.indexOf('/') !== -1) {
@@ -785,4 +1163,14 @@ function isFromSearch(currentURL) {
         });
     }
     return urlFound;
+}
+
+function getDomainName(url) {
+    var hostname = new URL(url).hostname;
+    var hostArr = hostname.split('.');
+    if (hostArr.length === 2) {
+        return hostArr[0];
+    } else {
+        return hostArr[1];
+    }
 }

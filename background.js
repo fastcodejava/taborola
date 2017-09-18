@@ -13,7 +13,7 @@ var firstTab;
 var invokedWind;
 var startTime;
 var pagesToOpen = [];
-var myWork = false;
+var currentTask = false;
 
 var options = ['tabsBackground', 'highlightTabs', 'timeOut'];
 
@@ -66,7 +66,7 @@ chrome.storage.onChanged.addListener(function(changes, area) {
             console.log("invoked from " + invokedWind + "\n urls-" + urls.length);
             if (!changes.opnSmeTb.newValue) {
                 if (Array.isArray(urls)) {
-                    myWork = true;
+                    currentTask = true;
                     openAt ++;
                     startTime = new Date().getTime();
                     chrome.tabs.create({url: urls[0], active : !tabsBackground, index: parseInt(openAt), windowId : invokedWind}, function(tab){
@@ -144,7 +144,7 @@ chrome.storage.onChanged.addListener(function(changes, area) {
         chrome.storage.sync.set({urlsToOpen: [], currTab : "", invokedWindow : "", opnSmeTb : ""}, function() {});
     }
     if (chrome.runtime.error) {
-        console.log("ddd Runtime error.");
+        console.log("Runtime error.");
     }
 
 });
@@ -177,11 +177,11 @@ chrome.tabs.onUpdated.addListener(function(tabId , changeInfo, info) {
             chrome.browserAction.setIcon({path:"icons/ic_title_black_24dp_1x.png"});
             chrome.storage.sync.set({loading: false}, function() {});
             rotateIcon(false);
-            myWork = false;
+            currentTask = false;
         }
     }
     console.log(lastTab + "--tt--" + openAt);
-    if (myWork) {
+    if (currentTask) {
         if (info.status === "complete"  && tabId === lastTab && pagesToOpen.length > 1) {
             //console.log("length" + urls.length);
             chrome.tabs.update(firstPage, {active: true});
@@ -198,7 +198,7 @@ chrome.tabs.onUpdated.addListener(function(tabId , changeInfo, info) {
             chrome.storage.sync.set({loading: false}, function() {});
             //keep_switching_icon = false;
             rotateIcon(false);
-            myWork = false;
+            currentTask = false;
         }
     }
 
@@ -208,12 +208,11 @@ chrome.tabs.onUpdated.addListener(function(tabId , changeInfo, info) {
 chrome.browserAction.onClicked.addListener(function(tab) {
 	console.log("call adi");
   //chrome.tabs.executeScript(null, {file: "content_script.js"});
-});
+});*/
 
+/*
 chrome.runtime.onMessage.addListener(function(req, sender, sendres){
-	if (req.todo === "show_text") {
-		console.log("in lsner");
+	console.log("in lstnr");
 
-	}
 
 });*/

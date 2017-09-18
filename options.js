@@ -8,6 +8,7 @@ function save_options() {
     var highlightTabs = document.getElementById('highlightTabs').checked;
     var selectAll = document.getElementById('selectAll').checked;
     var timeOut = document.getElementById('timeOut').value;
+    //var searchSites = document.getElementById('searchSites').value;
 
     if (jsonData.trim() === '') {
         return;
@@ -16,7 +17,18 @@ function save_options() {
     document.getElementById("error").innerHTML = "";
     try {
         jsonObj = JSON.parse(jsonData);
+        var domValues = Object.values(jsonObj);
+        domValues.forEach(function(val){
+            alert(val);
+            var keys = Object.keys(val);
+            alert(keys);
+            if (keys.indexOf('sites') === -1 || keys.indexOf('current') === -1) {
+                alert ("in if");
+                throw new Error("The given json seems to have different schema..Please check and try again");
+            }
+        });
     } catch(err) {
+        alert (err);
         document.getElementById("error").innerHTML = err.message;
         return;
     }
@@ -43,12 +55,10 @@ function save_options() {
 function restore_options() {
     chrome.storage.sync.get( "jsonData", function(items) {
         var content = document.getElementById('jsonData');
-        //var textArea = document.createElement("TEXTAREA");
-        //textArea.rows = "10";
-        //textArea.cols = "50";
         var text = document.createTextNode(JSON.stringify(items.jsonData, null, "\t"));
-        //textArea.appendChild(text);
-        //var data = items.preferedPages;
+        //alert(library.json.prettyPrint(JSON.stringify(items.jsonData, null, "\t")));
+        //var text = document.createTextNode(library.json.prettyPrint(JSON.stringify(items.jsonData, null, "\t")));
+        //var text = document.createTextNode(library.json.prettyPrint(account));
 
         content.appendChild(text);
 
@@ -63,6 +73,9 @@ function restore_options() {
         document.getElementById('highlightTabs').checked = items.highlightTabs;
         document.getElementById('selectAll').checked = items.selectAll;
         document.getElementById('timeOut').value = items.timeOut;
+        //document.getElementById('searchSites').value = items.searchSites;
+
+
     });
 }
 
@@ -71,6 +84,32 @@ function replacer(key, value) {
     alert(JSON.stringify(value));
     return "<font color='blue'>" + value + "</font>";
 }
+
+var account = { active: true, codes: [48348, 28923, 39080], city: "London" };
+
+if (!library)
+    var library = {};
+
+library.json = {
+    replacer: function(match, pIndent, pKey, pVal, pEnd) {
+        var key = '<span class=json-key>';
+        var val = '<span class=json-value>';
+        var str = '<span class=json-string>';
+        var r = pIndent || '';
+        if (pKey)
+            r = r + key + pKey.replace(/[": ]/g, '') + '</span>: ';
+        if (pVal)
+            r = r + (pVal[0] == '"' ? str : val) + pVal + '</span>';
+        return r + (pEnd || '');
+    },
+    prettyPrint: function(obj) {
+        var jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
+        return JSON.stringify(obj, null, 3)
+            .replace(/&/g, '&amp;').replace(/\\"/g, '&quot;')
+            .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(jsonLine, library.json.replacer);
+    }
+};
 
 function cancel_options () {
     window.close();

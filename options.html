@@ -1,10 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Preferences Options</title>
-    <style>
-        body: { padding: 10px; }
-    </style>
+	<title>My Preferences Options</title>
+	<style>
+		body: { padding: 10px; }
+		pre {
+			background-color: ghostwhite;
+			border: 1px solid silver;
+			padding: 10px 20px;
+			margin: 20px;
+		}
+		.json-key {
+			color: brown;
+		}
+		.json-value {
+			color: navy;
+		}
+		.json-string {
+			color: olive;
+		}
+
+	</style>
 </head>
 
 <body >
@@ -13,25 +29,29 @@
 </div>
 <br/>-->
 <label>
-    JSON Data
-    <textarea rows="20" cols="70" id="jsonData">
+	JSON Data
+
+	<textarea rows="20" cols="70" id="jsonData">
 
 	</textarea>
-    <br />
+	<br />
 </label>
 <label>
-    <input type="checkbox" id="tabsBackground">
-    Open tabs in Background.
-    <br />
-    <input type="checkbox" id="highlightTabs">
-    Highlight tabs with same base url.
-    <br/>
-    <input type="checkbox" id="selectAll">
-    Select all pages.
-    <br/>
-    Page loading time out
-    <input type="text" id="timeOut" value="30" size="5">
-    seconds.
+	<input type="checkbox" id="tabsBackground">
+	Open tabs in Background.
+	<br />
+	<input type="checkbox" id="highlightTabs">
+	Highlight tabs with same base url.
+	<br/>
+	<input type="checkbox" id="selectAll">
+	Select all pages.
+	<br/>
+	Page loading time out
+	<input type="text" id="timeOut" value="30" size="5">
+	seconds.
+	<!--Search Sites
+	<input type="text" id="searchSites" >
+    (comma seperated site names).-->
 </label>
 
 
