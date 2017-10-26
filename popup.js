@@ -13,9 +13,10 @@ var searchPage;
 var queryString;
 var searchSites;
 var searchEngine;
-
-var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString', 'searchEngine'];
-var google = ['www.google.co.in', 'www.google.com', 'search.yahoo.com', 'www.bing.com'];
+let baseUrl;
+let anonymus;
+var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString', 'searchEngine', 'anonymus'];
+var google = ['www.google.co.in', 'www.google.com', 'search.yahoo.com', 'www.bing.com', 'www.youtube.com'];
 
 
 
@@ -31,9 +32,25 @@ chrome.storage.sync.get( options, function(items) {
     queryString = items.queryString;
     //searchSites = items.searchSites;
     searchEngine = items.searchEngine;
+    anonymus =  items.anonymus;
 });
 
 function closeWindow (e) {
+    const allUrls = document.getElementsByName("link");
+    var parentNode;
+    allUrls.forEach (function (url) {
+        console.log(url.parentNode);
+        var itemValue = url.value;
+        if (searchPage) {
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
+                    console.log(response.farewell);
+                });
+            });
+        }
+
+    });
+
 
     window.close();
 }
@@ -41,37 +58,53 @@ function closeWindow (e) {
 
 function clickHandler(e) {
     //loading = true;
+    console.log("in on clik opn");
     const allUrls = document.getElementsByName("link");
+    console.log(allUrls);
+
     const urlsToOpen = [];
     const tabToHilite = [currentTab.index];
     const openAt = currentTab.index + 1;
-    allUrls.forEach (function (url) {
-        console.log(url);
-        if (url.checked) {
-            urlsToOpen.push(url.value);
-            console.log("came till here");
-            /*chrome.tabs.create({url: url.value, active : !tabsBackground, index: openAt}, function(tab){
-                tabToHilite.push(tab.index);
-                openAt ++;
-            });*/
-            var itemValue = url.value;
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
-                    console.log(response.farewell);
-                });
-            });
+    let anonymus;
+    if (allUrls.length === 0) {
+        console.log("link undefined " + allUrls);
+        anonymus = document.getElementById("anonymus").value;
+        const urls = anonymus.split('\n');
+        urls.forEach(function (url) {
+            urlsToOpen.push(url);
+        });
+    } else {
+        allUrls.forEach (function (url) {
+            console.log(url);
+            if (url.checked) {
+                urlsToOpen.push(url.value);
+                console.log("came till here");
+                /*chrome.tabs.create({url: url.value, active : !tabsBackground, index: openAt}, function(tab){
+                    tabToHilite.push(tab.index);
+                    openAt ++;
+                });*/
+                var itemValue = url.value;
+                if (searchPage) {
+                    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                        chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
+                            console.log(response.farewell);
+                        });
+                    });
+                }
 
-        } else {
-            console.log("came till here in else");
-        }
-    });
+            } else {
+                console.log("came till here in else");
+            }
+        });
+    }
 
+    console.log(urlsToOpen);
     /*if (highlightTabs) {
         chrome.tabs.highlight({tabs: tabToHilite}, function(){});
     }*/
     chrome.storage.sync.set({urlsToOpen: [], currTab : "", invokedWindow : "", opnSmeTb : "", loading: false}, function() {});
     var opnSmeTab = document.getElementById("sametabChkbx").checked;
-    chrome.storage.sync.set({urlsToOpen: urlsToOpen, currTab: currentTab, invokedWindow: invokedWindow, opnSmeTb: opnSmeTab, loading: true}, function() {
+    chrome.storage.sync.set({urlsToOpen: urlsToOpen, currTab: currentTab, invokedWindow: invokedWindow, opnSmeTb: opnSmeTab, loading: true, anonymus : anonymus}, function() {
         if (chrome.runtime.error) {
             console.log("Runtime error.");
         }
@@ -351,10 +384,28 @@ function addUrl() {
             }*/
             //var prefForDom = origObj[fullDomain] || origObj[name];
             var prefForDom = getPreferences(fullDomain, name, origObj);
+            console.log(prefForDom + " --- llllllll");
+            var newEntryObj = {};
+            var path = url.pathname.split('/');
+            if (path.length === 0) {
+                newEntryObj[name] = currentUrl;
+            } else {
+                if (path[path.length-1].indexOf('=') === -1) {
+                    newEntryObj[path[path.length-1]] = currentUrl;
+                } else {
+                    newEntryObj[path[1]] = currentUrl;
+                }
+            }
+
+            //path[path.length];
+            //var nameKey = url.pathname.endsWith('/') ? url.pathname[url.pathname.length - 2] : url.pathname[url.pathname.length - 1];
+
+            console.log(path.length);
+            console.log("dom-" + path + "--" + path[path.length-1]);
 
             if (prefForDom) {
                 if (Array.isArray(prefForDom)) {
-                    prefForDom.push(currentUrl);
+                    prefForDom.push(newEntryObj);
                 } else {
                     var options = prefForDom;
                     var type = document.getElementById("typeSelect");
@@ -362,7 +413,7 @@ function addUrl() {
 
                     var allTypes = options[selectedType];
                     if (Array.isArray(options[selectedType])){
-                        options[selectedType].push(currentUrl);
+                        options[selectedType].push(newEntryObj);
                     }
                 }
 
@@ -372,7 +423,7 @@ function addUrl() {
                 var newObj = {};
                 newObj["current"] = name;
                 newObj["description"] = name;
-                newObj["sites"] = [currentUrl];
+                newObj["sites"] = [newEntryObj];
                 origObj[name] = newObj;
             }
             //origObj[name] = [currentUrl];
@@ -390,33 +441,15 @@ function addUrl() {
                     }, 750);
                 });
         });
-//console.log("outside -- " + JSON.stringify(jsonObj));
-
     });
 }
 
-//chrome.runtime.onMessage.addListener(messageReceived);
-/*
-function messageReceived(msg) {
-	console.log(msg);
-   if (msg === "completed") {
-	   loading = false;
-   }
-}*/
 
 function searchAgain () {
     var urlSite = '';
-    //var url = new URL(currentUrl);
-    //var fullDomain = url.hostname;
-    //console.log(queryString);
-    //console.log(url.hostname);
-    //urlSite = queryString + '%20site:' + url.hostname;
-    //console.log(urlSite);
-
     var selectedSite = getSearchSite();
     var selSiteArr;
     var idx = currentTab.index + 1;
-    //window.close;
     if (selectedSite.indexOf(',') > -1) {
         selSiteArr = selectedSite.split(',');
         selSiteArr.forEach(function(selSite){
@@ -538,17 +571,6 @@ function searchInSite (queryString) {
 
         var selectedSite = getSearchSite();
 
-        /*var site = document.getElementsByName("site");
-        for(var i = 0; i < site.length; i++) {
-           if(site[i].checked) {
-               selectedSite = site[i].value;
-               if (!selectedSite.endsWith('/')) {
-                   selectedSite = selectedSite + '/';
-               }
-           }
-
-
-         } */
         if (selectedSite.indexOf('yahoo') > -1) {
             urlSite = selectedSite + 'search;?p=' + searchText + '%20site:' + url.hostname;
         } else {
@@ -558,24 +580,146 @@ function searchInSite (queryString) {
         chrome.tabs.update(currentTab.id, {url: urlSite});
 
     }
-    //var url = new URL(currentUrl);
-    //var fullDomain = url.hostname;
-    //console.log(queryString);
-    //console.log(url.hostname);
-    //urlSite = queryString + '%20site:' + url.hostname;
-    //console.log(urlSite);
     window.close();
 }
+document.addEventListener('beforeunload', function (event) {
+    console.log("unload..");
+    const allUrls = document.getElementsByName("link");
+    var parentNode;
+    allUrls.forEach (function (url) {
+        console.log(url.parentNode);
+        var itemValue = url.value;
+        if (searchPage) {
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
+                    console.log(response.farewell);
+                });
+            });
+        }
 
+    });
+
+
+    window.close();
+}, true);
+
+function saveSelection() {
+    getCurrentTabUrl(function(tab) {
+        currentUrl = tab.url;
+        var url = new URL(tab.url);
+        var fullDomain = url.hostname;
+        console.log("dom-" + fullDomain);
+        var name = getDomainName(tab.url);
+
+        chrome.storage.sync.get( "jsonData", function(items) {
+            console.log(JSON.stringify(items));
+            var origObj = items.jsonData;
+            var prefForDom = getPreferences(fullDomain, name, origObj);
+
+            if (prefForDom) {
+                if (Array.isArray(prefForDom)) {
+                    const allUrls = document.getElementsByName("link");
+                    allUrls.forEach (function (url) {
+                        console.log("chkd--" + url.checked);
+                        console.log("val--" + url.value);
+                        console.log(url.labels[0].innerText);
+                        console.log(JSON.stringify(prefForDom));
+                        console.log(prefForDom.length + "---long");
+                        var label = url.labels[0].innerText;
+                        //if (label) //need to remove (currentTab from label)
+                        if (label.indexOf("Current Tab")) {
+                            label = label.split('(')[0];
+                        }
+                        for (var i=0; i < prefForDom.length; i++) {
+                            if (typeof prefForDom[i] === 'object') {
+                                console.log(prefForDom[i]) ;
+                                if (Object.keys(prefForDom[i])[0] === label) {
+                                    if (typeof Object.values(prefForDom[i])[0] === 'object') {
+                                        prefForDom[i][label]['selected'] = url.checked;
+                                    } else {
+                                        prefForDom[i][label] = {'selected' : url.checked, url : Object.values(prefForDom[i])[0]};
+                                    }
+
+                                }
+                            } else {
+                                if (prefForDom[i] === url.value) {
+                                    prefForDom[i] = {[label] : {'selected' : url.checked, url : url.value}};
+                                }
+                            }
+                        }
+                        console.log(JSON.stringify(prefForDom));
+
+                    });
+                } else {
+                    var options = prefForDom;
+                    var type = document.getElementById("typeSelect");
+                    var selectedType = type.options[type.selectedIndex].value;
+
+                    var allTypes = options[selectedType];
+                    if (Array.isArray(options[selectedType])){
+                        const allUrls = document.getElementsByName("link");
+
+                        allUrls.forEach (function (url) {
+                            var label = url.labels[0].innerText;
+                            if (label.indexOf("Current Tab")) {
+                                label = label.split('(')[0];
+                            }
+                            for (var i=0; i < allTypes.length; i++) {
+                                console.log("vaan" + allTypes[i]);
+                                if (typeof allTypes[i] === 'object') {
+                                    if (Object.keys(allTypes[i])[0] === label) {
+                                        if (typeof Object.values(prefForDom[i])[0] === 'object') {
+                                            prefForDom[selectedType][i][label]['selected'] = url.checked;
+                                        } else {
+                                            prefForDom[selectedType][i][label] = {'selected' : url.checked, url : Object.values(allTypes[i])[0]};
+                                        }
+
+                                    }
+                                } else {
+                                    if (allTypes[i] === url.value) {
+                                        prefForDom[selectedType][i]= {[label]  : {'selected' : url.checked, url : url.value}};
+                                    }
+                                }
+                            }
+                            console.log(JSON.stringify(prefForDom));
+
+                        });
+                    }
+                }
+            }
+            console.log(JSON.stringify(origObj));
+            chrome.storage.sync.set({
+                    jsonData: origObj},
+                function() {
+                    // Update status to let user know options were saved.
+                    var status = document.getElementById('status');
+                    status.textContent = 'Options saved.';
+                    setTimeout(function() {
+                        status.textContent = '';
+                    }, 750);
+                });
+        });
+    });
+}
+
+function editTextArea () {
+    let txtAreaContent = this.value;
+    console.log("in txt are" + txtAreaContent);
+    if (txtAreaContent !== '') {
+        document.getElementById('openbtn').hidden = "";
+    }
+}
 document.addEventListener('DOMContentLoaded', function () {
     /* var bgPage = chrome.extension.getBackgroundPage();
      console.log("before");
      var bk = bgPage.test("abc"); // Here paste() is a function that returns value.
      console.log("beforeAAA--" + bk);*/
+    document.getElementById('mainStuff').hidden = true;
     document.getElementById('cancelbtn').addEventListener('click', closeWindow);
     document.getElementById('openbtn').addEventListener('click', clickHandler);
     document.getElementById('selectall').addEventListener('click', selectall);
     document.getElementById('addbtn').addEventListener('click', addUrl);
+    document.getElementById('savebtn').addEventListener('click', saveSelection);
     //document.getElementById('searchAgain').addEventListener('click', searchAgain);
     document.getElementById('sortListDir').addEventListener('click', sortListDir);
     //document.getElementById('searchbtn').addEventListener('click', searchInSite);
@@ -598,7 +742,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var hostNameArray = fullDomain.split(".");
 
         console.log(hostNameArray.length);
-        var domain = getDomain(currentUrl);
+        //var domain = getDomain(currentUrl);
         var name = getDomainName(tab.url); //hostNameArray[1]; //domain.split('.')[0];
         console.log("currentUrl --" + currentUrl);
         console.log("name --" + name);
@@ -611,6 +755,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var prefForDom;
         console.log("test--" + isFromSearch(currentUrl));
         if (google.indexOf (url.hostname) > -1 || isFromSearch(currentUrl)) {
+            console.log("inside google");
             if (googleSearch === undefined || Object.keys(googleSearch).length === 0)  {
                 //console.log("google seach list is empty");
                 //window.close();
@@ -634,6 +779,7 @@ document.addEventListener('DOMContentLoaded', function () {
             prefForDom = googleSearch;
             console.log("check2-" + prefForDom + "-");
             document.getElementById('addbtn').hidden = "hidden";
+            document.getElementById('savebtn').hidden = "hidden";
             //document.getElementById('searchbtn').hidden = "hidden";
             //document.getElementById('searchText').hidden = "hidden";
             content.style.width = "600px";
@@ -642,14 +788,17 @@ document.addEventListener('DOMContentLoaded', function () {
             if (googleSearch === "") {
                 console.log("Search list is empty");
             }
+            var engineName = getDomainName(searchEngine); //new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
             var div = document.createElement('div');
             div.setAttribute("align", "center");
             var engineLogo = document.createElement("IMG");
+            console.log("get favicon--" + searchEngine);
             engineLogo.setAttribute("src", 'chrome://favicon/'+ searchEngine);
+            //engineLogo.setAttribute("src", '/icons/' + engineName + '.ico');
             engineLogo.style.cssFloat   = 'middle';
             div.appendChild(engineLogo);
-            var domain = getDomain(searchEngine);
-            var engineName = new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
+            //var domain = getDomain(searchEngine);
+            //var engineName = new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
 
             var searchEngineTxt = document.createTextNode(" " + engineName + " results.");
             div.appendChild(searchEngineTxt);
@@ -671,7 +820,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if(prefForDom){
             //console.log(typeof allurls);
             if (Array.isArray(prefForDom)) {
-                content.appendChild(createList(prefForDom));
+                console.log("pref dom is an array")
+                if (prefForDom.length > 0) {
+                    content.appendChild(createList(prefForDom));
+                } else {
+                    noConfigFound(content);
+                }
             } else {
                 content.appendChild(createDropDown(prefForDom, name));
                 var label = document.createElement('label');
@@ -690,17 +844,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('selectall').checked = true;
             }
             createRadio(content);
+            //document.getElementById('addbtn').hidden = "hidden";
         } else {
-            var text = document.createTextNode("Domain not set in preference.");
+            console.log("domain not set...");
+            noConfigFound(content);
+            /*var text = document.createTextNode("Domain not set in preference.");
             document.getElementById('openbtn').hidden = "hidden";
-            //document.getElementById('cancelbtn').hidden = "hidden";
             document.getElementById('selectall').hidden = "hidden";
             document.getElementById('selectall').nextSibling.nodeValue = "";
             document.getElementById('sortListDir').hidden = "hidden";
             document.getElementById('sortListDir').nextSibling.nodeValue = "";
-            //document.getElementById('addbtn').hidden = "";
-            content.appendChild(text);
-            //document.getElementById('typeSelect').addEventListener('changed', selectOption);
+            document.getElementById('anonymus').hidden = "";
+            content.appendChild(text);*/
+
         }
 
 
@@ -709,7 +865,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', chrome.extension.getURL('youtube.json'));
+    xhr.open('GET', chrome.extension.getURL('utube.json'));
     xhr.responseType = "text";
 
     xhr.onreadystatechange = function() {
@@ -749,16 +905,48 @@ document.addEventListener('DOMContentLoaded', function () {
     //
 
     //console.log("margin" + document.getElementById("selectall").style.margin);
+    /*var delayMillis = 10000; //1 second
 
+    setTimeout(function() {
+      //your code to be executed after 1 second
+
+    }, delayMillis);*/
+    document.getElementById('mainStuff').hidden = false;
+    document.getElementById('progress').hidden = true;
 });
 
+function noConfigFound(content) {
+    console.log("domain not set...");
+    const divTxt = document.createElement("div");
+    var text = document.createTextNode("Domain not set in preference." + "\n" + "You may enter the URL's to open one below the other in the space given below and open them.");
+    divTxt.style.marginLeft = "25px";
+    document.getElementById('openbtn').hidden = "hidden";
+    //document.getElementById('cancelbtn').hidden = "hidden";
+    document.getElementById('selectall').hidden = "hidden";
+    document.getElementById('selectall').nextSibling.nodeValue = "";
+    document.getElementById('sortListDir').hidden = "hidden";
+    document.getElementById('sortListDir').nextSibling.nodeValue = "";
+    //document.getElementById('addbtn').hidden = "";
+    document.getElementById('anonymus').hidden = "";
+    if (anonymus) {
+        document.getElementById('anonymus').value = anonymus;
+        document.getElementById('openbtn').hidden = "";
+    }
+    document.getElementById('anonymus').onkeyup = editTextArea;
+
+
+    divTxt.appendChild(text);
+    content.appendChild(divTxt);
+
+}
+
 function createRadio(content) {
-    var engDom = getDomain(searchEngine);
+    //var engDom = getDomain(searchEngine);
     //var engine = engDom.split('.')[0];
     var engineUrl = new URL(searchEngine);
     console.log("url hostname eng-" + engineUrl.hostname);
     var engine = getDomainName(searchEngine); //engineUrl.hostname.split('.')[1];
-    var sitesArr = ['https://www.google.com/', 'https://search.yahoo.com/', 'http://www.bing.com/']; //searchSites.split(',');
+    var sitesArr = ['https://www.google.com/', 'https://search.yahoo.com/', 'https://www.bing.com/', 'https://www.youtube.com/']; //searchSites.split(',');
 
     var searchContent = document.getElementById('searchContent');
 
@@ -818,18 +1006,15 @@ function createRadio(content) {
     searchAgainBtn.setAttribute("type", "button");
     selectAll ? searchAgainBtn.disabled = true : searchAgainBtn.disabled = false;
     if (searchPage) {
-        var radio = document.createElement("INPUT");
+        /*var radio = document.createElement("INPUT");
         radio.setAttribute("type", "radio");
         radio.setAttribute("value", both);
         radio.setAttribute("name", "site");
         selectAll ? radio.disabled = true : radio.disabled = false;
-        //radio.setAttribute("id", "site");
         var label = document.createElement("label");
         label.innerHTML = "Both";
-        //content.appendChild(radio);
-        //content.appendChild(label);
         searchDiv.appendChild(radio);
-        searchDiv.appendChild(label);
+        searchDiv.appendChild(label);*/
         searchAgainBtn.setAttribute("id", "searchAgain");
         searchAgainBtn.setAttribute("value", "Search Again");
         searchAgainBtn.onclick = searchAgain;
@@ -878,49 +1063,37 @@ function getPreferences(url_hostname, name, dataObj) {
     if (dataObj === undefined) {
         dataObj = jsonData;
     }
-    /*var pref = dataObj[url_hostname] || dataObj[name];
-    if (pref) {
-        return pref;
-    } else {
-        var hostNameKeys = Object.keys(dataObj);
-        hostNameKeys.forEach(function(key) {
-            if (key.indexOf(',') !== -1) {
-                var hostnameArr = key.split(',');
-                hostnameArr.forEach(function(hostname){
-                    if (url_hostname === hostname || name === hostname) {
-                        pref = dataObj[key];
-                        //return pref;
-                    }
-                });
-            }
-
-        });
-        return pref;
-    }*/
-    //console.log(JSON.stringify(dataObj));
-    for(var item in dataObj) {
-        var domain,pref;
+    console.log(url_hostname + " -- " + name );
+    let pref = [];
+    for (var item in dataObj) {
+        let domain;
         domain = dataObj[item]['current'];
-        if (domain === url_hostname || domain === name) {
-            pref = dataObj[item]['sites'];
-        }
-
-        if (pref) {
-            return pref;
-        } else {
-            if (domain.indexOf(',') !== -1) {
-                var domArr = domain.split(',');
-                domArr.forEach(function(hostname){
-                    if (url_hostname === hostname || name === hostname) {
-                        pref = dataObj[item]['sites'];
-                        //return pref;
-                    }
-                });
+        console.log("DOMAIN--" + domain);
+        if (domain.indexOf(',') === -1) {
+            console.log("in no comma");
+            //pref = [];
+            //if (domain === url_hostname || domain === name) {
+            if (domain.indexOf(url_hostname) > -1  || domain.indexOf(name)  > -1) {
+                console.log("name matched....")
+                if (domain.indexOf('http://') !== -1) {
+                    baseUrl = domain;
+                } else {
+                    baseUrl = 'http://' + domain;
+                }
+                var sites = dataObj[item]['sites'];
+                pref = sites;
+                console.log("sites--" + sites);
             }
-
+            console.log("in get pref " + JSON.stringify(pref));
+        } else {
+            var domArr = domain.split(',');
+            domArr.forEach(function(hostname){
+                if (url_hostname === hostname || name === hostname) {
+                    pref = dataObj[item]['sites'];
+                }
+            });
+            console.log("in get pref " + pref);
         }
-        //console.log(dataObj[item]['current']);
-
     }
     console.log(pref);
     return pref;
@@ -933,6 +1106,9 @@ function createList(allurls) {
     list.setAttribute("type", "1");
     list.setAttribute("id", "orderedList");
     //list.setAttribute("")
+    if (!searchPage) {
+        list.style.width = "100%";
+    }
     list.style.align = "right";
 
     var i=1;
@@ -942,33 +1118,105 @@ function createList(allurls) {
         console.log("in createList " + JSON.stringify(page));
         //console.log(Object.keys(page));
         //console.log(Object.values(page));
-        var linkObj, key;
+        var input = document.createElement("INPUT");
+        input.setAttribute("type", "checkbox");
+        var label = document.createElement('label');
+
+        var linkObj, key, url;
         if (typeof page === 'object') {
             console.log("has key value");
-            linkObj = Object.values(page)[0];
+
+            if (typeof Object.values(page)[0]  === 'object') {
+                url = Object.values(page)[0];
+                linkObj = url.url;
+                if (linkObj.indexOf("http") === -1) {
+                    linkObj = baseUrl + linkObj;
+                }
+                input.setAttribute("value", linkObj);
+                input.setAttribute("Alt", url.alt);
+                if (currentUrl !== linkObj && url.selected !== false && selectAll) {
+                    input.setAttribute("checked", true);
+                    label.style.fontWeight = "bold";
+                    if (searchPage) {
+                        var itemValue = input.value;
+                        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                            chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
+                                console.log(response.farewell);
+                            });
+                        });
+                    }
+
+                } else {
+                    console.log("llll" + label.getText);
+                }
+            } else {
+                linkObj = Object.values(page)[0];
+                if (linkObj.indexOf("http") === -1) {
+                    linkObj = baseUrl + linkObj;
+                }
+                input.setAttribute("value", linkObj);
+                console.log("in else");
+                input.setAttribute("Alt", linkObj);
+                if (currentUrl !== linkObj && selectAll) {
+                    input.setAttribute("checked", true);
+                    label.style.fontWeight = "bold";
+                    if (searchPage) {
+                        var itemValue = input.value;
+                        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                            chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
+                                console.log(response.farewell);
+                            });
+                        });
+                    }
+                } else {
+                    console.log("llll" + label.getText);
+                }
+            }
+
             key = Object.keys(page)[0];
         } else {
             var pageParts = page.split('/');
             console.log(pageParts.length);
             console.log(pageParts[pageParts.length - 1] );
             linkObj = page;
+            if (linkObj.indexOf("http") === -1) {
+                linkObj = baseUrl + linkObj;
+            }
             key = page.endsWith('/') ? pageParts[pageParts.length - 2] : pageParts[pageParts.length - 1];
-        }
-        console.log("linkObj--" + linkObj);
-        console.log("currentUrl--" + currentUrl);
+            input.setAttribute("value", linkObj);
+            if (currentUrl !== linkObj && selectAll) {
+                input.setAttribute("checked", true);
+                label.style.fontWeight = "bold";
+                if (searchPage) {
+                    var itemValue = input.value;
+                    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                        chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
+                            console.log(response.farewell);
+                        });
+                    });
+                }
+            } else {
+                console.log("llll" + label.getText);
+            }
 
-        var input = document.createElement("INPUT");
-        //var linkObj = Object.values(page)[0];
-        input.setAttribute("type", "checkbox");
-        input.setAttribute("value", linkObj);
+        }
         input.setAttribute("name", "link");
         if (currentUrl === linkObj) {
             key =  key + "(Current Tab)";
             console.log("kkk"+key);
+            document.getElementById('addbtn').hidden = "hidden";
         }
         var id = key; //Object.keys(page)[0];
         input.setAttribute("id", id);
         input.onclick = chkBoxClick;
+        label.htmlFor = id;
+
+        console.log("linkObj--" + linkObj);
+        console.log("currentUrl--" + currentUrl);
+
+
+        //var linkObj = Object.values(page)[0];
+
 
 
         var li = document.createElement("LI");
@@ -982,47 +1230,11 @@ function createList(allurls) {
         logo.setAttribute("src", 'chrome://favicon/'+ linkObj); //Object.values(page)[0]);
         logo.setAttribute("width", "20");
         logo.setAttribute("height", "12");
-        var label = document.createElement('label');
-        label.htmlFor = id;
-
-        if (typeof linkObj === 'object') {
-            console.log("in if");
-            input.setAttribute("value", linkObj.url);
-            input.setAttribute("Alt", linkObj.alt);
-            if (currentUrl !== linkObj && linkObj.selected !== false && selectAll) {
-                input.setAttribute("checked", true);
-                label.style.fontWeight = "bold";
-                var itemValue = input.value;
-                chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                    chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
-                        console.log(response.farewell);
-                    });
-                });
-            } else {
-                console.log("llll" + label.getText);
-            }
-        } else {
-            console.log("in else");
-            input.setAttribute("value", linkObj);
-            input.setAttribute("Alt", linkObj);
-            if (currentUrl !== linkObj && selectAll) {
-                input.setAttribute("checked", true);
-                label.style.fontWeight = "bold";
-                var itemValue = input.value;
-                chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                    chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
-                        console.log(response.farewell);
-                    });
-                });
-            } else {
-                console.log("llll" + label.getText);
-            }
-        }
-
 
         var link = document.createElement('a');
         link.textContent = id;
         link.href = linkObj; //Object.values(page)[0];
+        link.title = linkObj;
         link.onclick = linkClick;
         label.appendChild(link);
 
@@ -1168,9 +1380,34 @@ function isFromSearch(currentURL) {
 function getDomainName(url) {
     var hostname = new URL(url).hostname;
     var hostArr = hostname.split('.');
+    console.log(hostArr.length + "---yyy");
+    console.log(hostArr);
     if (hostArr.length === 2) {
         return hostArr[0];
+    } else if (hostArr.length === 4) {
+        if (hostArr[0] === 'www') {
+            return hostArr[1];
+        } else {
+            return hostArr[2];
+        }
     } else {
         return hostArr[1];
     }
+}
+
+function isUrlInList(currentURL, urlList) {
+    //console.log("Check1 " + JSON.stringify(googleSearch));
+    console.log("Check22 " + currentURL);
+    var urlFound = false;
+
+    urlList.forEach(function (obj) {
+        var value = Object.values(obj);
+        console.log("Check3 " + value);
+        if (value == currentURL) {
+            console.log("ret true");
+            urlFound = true;
+        }
+    });
+
+    return urlFound;
 }

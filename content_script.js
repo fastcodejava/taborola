@@ -3,15 +3,46 @@ var jsonObj = {};
 //jsonObj["description"] = "google search";
 var sites = [];
 var queryString;
-
+var hrefAdded = [];
 //google
-$("div.srg").find("h3 > a").each(function (index) {
+$("div#rso > div._NId:first").find("div.g").find("div.rc").find("h3 > a").each(function (index) {
     console.log("Title: " + this.text);
+    console.log($(this));
     //$(this).append("<br><span style='color: orange'>My new line text</span>");
     console.log('me done');
     var obj = {};
+
     obj[this.text] = $(this).attr('href');
     sites.push(obj);
+    hrefAdded.push($(this).attr('href'));
+
+
+});
+
+$("div#rso").find("div > g-section-with-header").find("h3").find("a").each(function (index) {
+    console.log("Title: " + this.text);
+    console.log($(this));
+    //$(this).append("<br><span style='color: orange'>My new line text</span>");
+    console.log('me done');
+    var obj = {};
+    if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+        obj[this.text] = $(this).attr('href');
+        sites.push(obj);
+    }
+
+
+});
+
+$("div.srg").find("h3 > a").each(function (index) {
+    console.log("Title: " + this.text);
+    console.log($(this));
+    //$(this).append("<br><span style='color: orange'>My new line text</span>");
+    console.log('me done');
+    var obj = {};
+    if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+        obj[this.text] = $(this).attr('href');
+        sites.push(obj);
+    }
 
 });
 //bing //ol.b_results
@@ -32,10 +63,26 @@ $("div#web").find("h3 > a").each(function () {
     obj[this.text] = $(this).attr('href');
     sites.push(obj);
 });
-jsonObj['sites'] = sites;
 
+//youtube //find("ytd-video-renderer")
+$("div#contents").find("h3 > a").each(function (index) {
+    console.log("Title: " + this.text);
+    console.log($(this));
+    //$(this).append("<br><span style='color: orange'>My new line text</span>");
+    console.log('me done');
+    var obj = {};
+    if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+        obj[this.text] = location.origin + $(this).attr('href');
+        sites.push(obj);
+    }
+
+    //div#title-wrapper
+});
+jsonObj['sites'] = sites;
 if (location.origin.indexOf('yahoo') > -1) {
     queryString = document.getElementsByName("p")[0].value;
+} else if (location.origin.indexOf('youtube') > -1) {
+    queryString = document.getElementsByName("search_query")[0].value;
 } else {
     queryString = document.getElementsByName("q")[0].value;
 }
@@ -75,7 +122,7 @@ console.log("showing..\n" + urlArr);
 //chrome.runtime.sendMessage({todo: "show_text"});
 
 chrome.runtime.onMessage.addListener(function(req, sender, sendres){
-    console.log("in lsner lll");
+    console.log("in lsner lll" + location.origin);
     /*if (request.greeting == "hello")*/
     var url = new URL(location.origin);
     var name = url.hostname.split('.')[1];
@@ -89,25 +136,51 @@ chrome.runtime.onMessage.addListener(function(req, sender, sendres){
         highlightTextY(req.selectedItems, req.highlight);
     } else if (name === 'bing') {
         highlightTextB(req.selectedItems, req.highlight);
+    } else if (name === 'youtube') {
+        highlightTextYT(req.selectedItems, req.highlight);
     }
-    /*} else {
-        if (name === 'google') {
-            removeHighlightG(req.selectedItems);
-        } else if (name === 'yahoo') {
-            removeHighlightY(req.selectedItems);
-        } else if (name === 'bing') {
-            removeHighlightB(req.selectedItems);
-        }
 
-    }*/
-    //sendResponse({farewell: "goodbye"});
 });
 
 function highlightTextG(selectedItems, highlight) {
 
     console.log("in highlight");
+    //$("div.srg").find("h3 > a").each(function (index) {
+    $("div#rso > div._NId:first").find("div.g").find("div.rc").find("h3 > a").each(function (index) {
+        //console.log("in first search.." + selectedItems);
+        //console.log("in first search.." + $(this).attr('href'));
+        if(selectedItems === $(this).attr('href')) {
+            if (highlight) {
+                //console.log("going to highlight,,,");
+                $(this.parentNode.nextSibling).css("background-color","#E2DDDD");
+            } else {
+                //console.log("going to de highlight,,,");
+                $(this.parentNode.nextSibling).css("background-color","");
+            }
 
+            console.log($(this));
+            console.log($(this.parentNode.nextSibling));
+        }
+    });
+
+    $("div#rso").find("div > g-section-with-header").find("h3").find("a").each(function (index) {
+        console.log("in 2nd search..");
+        if(selectedItems === $(this).attr('href')) {
+            if (highlight) {
+                $("div#rso").find("div > g-section-with-header").css("background-color","#E2DDDD");
+
+                //$(this.parentNode.nextSibling).css("background-color","#E2DDDD");
+            } else {
+                $("div#rso").find("div > g-section-with-header").css("background-color","");
+            }
+
+            console.log($(this));
+            console.log($("div#rso").find("div > g-section-with-header > g-scrolling-carousel"));
+        }
+
+    });
     $("div.srg").find("h3 > a").each(function (index) {
+        console.log("in 3rd search..");
         if(selectedItems === $(this).attr('href')) {
             if (highlight) {
                 $(this.parentNode.nextSibling).css("background-color","#E2DDDD");
@@ -151,6 +224,27 @@ function highlightTextB(selectedItems, highlight) {
                 $(this.parentNode.parentNode).find("div.b_caption").css("background-color","#E2DDDD");
             } else {
                 $(this.parentNode.parentNode).find("div.b_caption").css("background-color","");
+            }
+
+        }
+
+    });
+
+}
+
+function highlightTextYT(selectedItems, highlight) {
+
+    console.log("in highlight" + selectedItems);
+    $("div#contents").find("ytd-video-renderer").find("h3 > a").each(function (index) {
+        console.log($(this).attr('href'));
+        if(selectedItems.indexOf($(this).attr('href')) > -1) {
+            console.log($(this));
+            console.log($(this.parentNode.nextSibling));
+            console.log($(this.parentNode.parentNode));
+            if (highlight) {
+                $(this.parentNode.parentNode).css("background-color","#E2DDDD");
+            } else {
+                $(this.parentNode.parentNode).css("background-color","");
             }
 
         }

@@ -9,13 +9,14 @@ var lastTab;
 var urls = [];
 var tabToHilite;
 var openAt;
-var firstTab;
+var firstPage;
 var invokedWind;
 var startTime;
 var pagesToOpen = [];
 var currentTask = false;
-
-var options = ['tabsBackground', 'highlightTabs', 'timeOut'];
+var tabToLoad;
+let k = 0;
+var options = ['tabsBackground', 'highlightTabs', 'timeOut', 'tabToLoad'];
 
 
 var loading_images = ['ajax-loader_LB.gif',
@@ -43,7 +44,8 @@ chrome.storage.sync.get( options, function(items) {
     highlightTabs = items.highlightTabs;
     tabsBackground = items.tabsBackground;
     timeOut = items.timeOut * 1000;
-    console.log("time out--" + timeOut);
+    tabToLoad = items.tabToLoad;
+    console.log("time out--" + tabToLoad);
 });
 chrome.windows.getCurrent(function(win){
     currWindow = win.id;
@@ -64,6 +66,7 @@ chrome.storage.onChanged.addListener(function(changes, area) {
             openAt = changes.currTab.newValue.index;
             invokedWind = changes.invokedWindow.newValue;
             console.log("invoked from " + invokedWind + "\n urls-" + urls.length);
+            console.log("list of urls to open--" + urls);
             if (!changes.opnSmeTb.newValue) {
                 if (Array.isArray(urls)) {
                     currentTask = true;
@@ -75,7 +78,7 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                         //console.log(JSON.stringify(tab));
                         firstPage = tab.id;
                         lastTab = tab.id;
-                        console.log("reset" + openAt);
+                        console.log("reset" + openAt + urls[0]);
                         // chrome.browserAction.setIcon({path:"icons/ajax-loader.gif"});
                         //keep_switching_icon = true;
                         //console.log(keep_switching_icon);
@@ -86,39 +89,7 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                                 rotateIcon(false);
                             }
                         });
-                        /*chrome.tabs.onUpdated.addListener(function(tabId , changeInfo, info) {
-                            console.log("Test " + tabId + "--" + JSON.stringify(info) + "--" + JSON.stringify(changeInfo));
-                            //console.log("urls ln" + urls.length);
-                            if (info.status === "loading"  && tabId === lastTab) {
-                                var now = new Date().getTime();
-                                console.log(now - startTime);
-                                console.log(timeOut);
-                                if (now - startTime > timeOut) {
-                                    chrome.browserAction.setIcon({path:"icons/ic_title_black_24dp_1x.png"});
-                                    chrome.storage.sync.set({loading: false}, function() {});
-                                    rotateIcon(false);
-                                    return;
-                                }
-                            }
-                            if (info.status === "complete"  && tabId === lastTab && urls.length > 1) {
-                                //console.log("length" + urls.length);
-                                chrome.tabs.update(firstPage, {active: true});
-                                urls.shift();
-                                chrome.tabs.create({url: urls[0], active : false, index: parseInt(openAt), windowId : invokedWind}, function(tab) {
-                                    lastTab = tab.id;
-                                    tabToHilite.push(tab.index);
-                                    openAt ++;
-                                });
-                            }
-                            if (info.status === "complete"  &&  tabId === lastTab && urls.length == 1) {
-                                chrome.browserAction.setIcon({path:"icons/ic_title_black_24dp_1x.png"});
-                                //chrome.runtime.sendMessage({msg: "completed"}, function(response) {});
-                                chrome.storage.sync.set({loading: false}, function() {});
-                                //keep_switching_icon = false;
-                                rotateIcon(false);
-                            }
 
-                        });*/
                     });
                 } else {
                     openAt ++;
@@ -144,7 +115,7 @@ chrome.storage.onChanged.addListener(function(changes, area) {
         chrome.storage.sync.set({urlsToOpen: [], currTab : "", invokedWindow : "", opnSmeTb : ""}, function() {});
     }
     if (chrome.runtime.error) {
-        console.log("Runtime error.");
+        console.log("ddd Runtime error.");
     }
 
 });
@@ -181,16 +152,32 @@ chrome.tabs.onUpdated.addListener(function(tabId , changeInfo, info) {
         }
     }
     console.log(lastTab + "--tt--" + openAt);
+
     if (currentTask) {
         if (info.status === "complete"  && tabId === lastTab && pagesToOpen.length > 1) {
-            //console.log("length" + urls.length);
-            chrome.tabs.update(firstPage, {active: true});
-            pagesToOpen.shift();
-            chrome.tabs.create({url: pagesToOpen[0], active : false, index: parseInt(openAt), windowId : invokedWind}, function(tab) {
-                lastTab = tab.id;
-                tabToHilite.push(tab.index);
-                openAt ++;
-            });
+            console.log("firstPage--" + firstPage);
+            if (firstPage !== "") {
+                chrome.tabs.update(firstPage, {active: true});
+                firstPage = "";
+            }
+            console.log("k is-" + k);
+            if (k === parseInt(tabToLoad)) {
+                console.log("k is 2" + new Date().getTime());
+                k = 0;
+            }
+            for ( ;k < parseInt(tabToLoad); k++) {
+                console.log("k inside for--" + k + "---" + new Date().getTime());
+                pagesToOpen.shift();
+                chrome.tabs.create({url: pagesToOpen[0], active : false, index: parseInt(openAt), windowId : invokedWind}, function(tab) {
+                    lastTab = tab.id;
+                    tabToHilite.push(tab.index);
+                    openAt ++;
+                });
+                if (pagesToOpen.length == 1) {
+                    return;
+                }
+            }
+
         }
         if (info.status === "complete"  &&  tabId === lastTab && pagesToOpen.length == 1) {
             chrome.browserAction.setIcon({path:"icons/ic_title_black_24dp_1x.png"});
