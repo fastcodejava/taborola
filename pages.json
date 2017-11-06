@@ -1,53 +1,131 @@
 {
-"amazon": [
-  {"Books": "http://www.amazon.in/books"},
-  {"Kitchen": "http://www.amazon.in/kitchen"},
-  {"Grocery": "http://www.amazon.in/Gourmet-Specialty-Foods"},
-  {"Mobile-Phones": "http://www.amazon.in/mobile-phones"}
-],
-"cnn" : [
-  {"Regions": "http://edition.cnn.com/regions"},
-  {"Politics": "http://edition.cnn.com/politics"},
-  {"International": "http://money.cnn.com/INTERNATIONAL/"},
-  {"Entertainment": "http://edition.cnn.com/entertainment"},
-  {"Technology": "http://money.cnn.com/technology/"}
-],
-"yahoo" : [
-  {"NASDAQ" : {"url": "https://finance.yahoo.com/chart/^IXIC", "selected": false}},
-  {"NFLX" : "https://finance.yahoo.com/chart/NFLX"},
-  {"GOOGL" : "https://finance.yahoo.com/chart/GOOGL"},
-  {"AAPL" : "https://finance.yahoo.com/chart/AAPL"},
-  {"PCLN" : "https://finance.yahoo.com/chart/PCLN"},
-  {"FB" : "https://finance.yahoo.com/chart/FB"},
-  {"SIRI" : "https://finance.yahoo.com/chart/SIRI"},
-  {"AAOI" : "https://finance.yahoo.com/chart/AAOI"},
-  {"PLCE" : "https://finance.yahoo.com/chart/PLCE"},
-  {"MYSZ" : "https://finance.yahoo.com/chart/MYSZ"},
-  {"HTGM" : "https://finance.yahoo.com/chart/HTGM"},
-  {"FIZZ" : "https://finance.yahoo.com/chart/FIZZ"},
-  {"SNPS" : "https://finance.yahoo.com/chart/SNPS"},
-  {"COOL" : "https://finance.yahoo.com/chart/COOL"},
-  {"AUPH" : "https://finance.yahoo.com/chart/AUPH"},
-  {"TECL" : "https://finance.yahoo.com/chart/TECL"},
-  {"AKTX" : "https://finance.yahoo.com/chart/AKTX"},
-  {"SLCA" : "https://finance.yahoo.com/chart/SLCA"},
-  {"WIX" : "https://finance.yahoo.com/chart/WIX"}
-],
-"f-apimlb810lv":[
-  {"subscription": "https://f-apimlb810lv/m/subscription/ui/"},
-  {"remote": "https://f-apimlb810lv/m/remote/ui/"},
-  {"telemetry": "https://f-apimlb810lv/m/telemetry/ui/"},
-  {"location": "https://f-apimlb810lv/m/location/ui/"},
-  {"notification": "https://f-apimlb810lv/m/notification/ui/"},
-  {"monitor": "https://f-apimlb810lv/m/monitor/ui/"}
-],
-  "f-loggui801lv:9000": [
-    {"APILogs": "https://f-loggui801lv:9000/streams/564f49c3e4b0eaab4985f6e2/messages?rangetype=relative&q=*+AND+facility%3Aapim&relative=0&fields=http_method%2Chttp_status%2Cmessage%2Creq_url%2Csource#fields=http_method%2Chttp_status%2Cmessage%2Creq_url%2Csource"},
-    {
-      "AOTALogs": {
-        "url": "https://f-loggui801lv:9000/streams/5899e8c6e4b057ec305d93d0/messages?rangetype=relative&q=*+AND+facility%3Aapim&relative=0&fields=http_method%2Chttp_status%2Cmessage%2Creq_url%2Csource#fields=http_method%2Chttp_status%2Cmessage%2Creq_url%2Csource",
-        "selected": false
+  "reddit": {
+    "current": "reddit",
+    "sites": [
+      {
+        "stocks": "https://www.reddit.com/r/stocks/"
+      },
+      {
+        "StockMarket": "https://www.reddit.com/r/StockMarket/"
+      },
+      {
+        "Showerthoughts": "https://www.reddit.com/r/Showerthoughts/"
       }
-    }
     ]
+  },
+  "stackoverflow": {
+    "current": "stackoverflow",
+    "sites": [
+      {
+        "java": "https://stackoverflow.com/questions/tagged/java"
+      },
+      {
+        "javascript": "https://stackoverflow.com/questions/tagged/javascript"
+      },
+      {
+        "python": "https://stackoverflow.com/questions/tagged/python"
+      }
+    ]
+  },
+  "stocks": {
+    "current": "finance.yahoo.com",
+    "sites": {
+      "basic": [
+        {
+          "NASDAQ": "https://finance.yahoo.com/quote/^IXIC?p=^IXIC"
+        },
+        {
+          "NFLX": "https://finance.yahoo.com/quote/NFLX?p=NFLX"
+        },
+        {
+          "GOOGL": "https://finance.yahoo.com/quote/GOOGL?p=GOOGL"
+        },
+        {
+          "AAPL": "https://finance.yahoo.com/quote/AAPL?p=AAPL"
+        },
+        {
+          "PCLN": "https://finance.yahoo.com/quote/PCLN?p=PCLN"
+        },
+        {
+          "VERI": "https://finance.yahoo.com/quote/VERI?p=VERI"
+        },
+        {
+          "DRYS": "https://finance.yahoo.com/quote/DRYS?p=DRYS"
+        },
+        {
+          "OSTK": "https://finance.yahoo.com/quote/OSTK?p=OSTK"
+        },
+        {
+          "OLED": "https://finance.yahoo.com/quote/OLED?p=OLED"
+        },
+        {
+          "SHOP": "https://finance.yahoo.com/quote/SHOP?p=SHOP"
+        }
+      ],
+      "chart": [
+        {
+          "NASDAQ": "https://finance.yahoo.com/chart/^IXIC?p=^IXIC"
+        },
+        {
+          "NFLX": "https://finance.yahoo.com/chart/NFLX?p=NFLX"
+        },
+        {
+          "GOOGL": "https://finance.yahoo.com/chart/GOOGL?p=GOOGL"
+        },
+        {
+          "AAPL": "https://finance.yahoo.com/chart/AAPL?p=AAPL"
+        },
+        {
+          "PCLN": "https://finance.yahoo.com/chart/PCLN?p=PCLN"
+        },
+        {
+          "VERI": "https://finance.yahoo.com/chart/VERI?p=VERI"
+        },
+        {
+          "DRYS": "https://finance.yahoo.com/chart/DRYS?p=DRYS"
+        },
+        {
+          "OSTK": "https://finance.yahoo.com/chart/OSTK?p=OSTK"
+        },
+        {
+          "OLED": "https://finance.yahoo.com/chart/OLED?p=OLED"
+        },
+        {
+          "SHOP": "https://finance.yahoo.com/chart/SHOP?p=SHOP"
+        }
+      ]
+    }
+  },
+  "thestreet": {
+    "current": "thestreet",
+    "sites": [
+      {
+        "Daniel Dicker": "https://realmoney.thestreet.com/authors/daniel-dicker"
+      },
+      {
+        "Helene Meisler": "https://realmoney.thestreet.com/authors/helene-meisler"
+      },
+      {
+        "Jonathan Heller": "https://realmoney.thestreet.com/authors/jonathan-heller"
+      },
+      {
+        "Guy Ortmann": "https://realmoney.thestreet.com/authors/guy-ortmann"
+      },
+      {
+        "Carolyn Boroden": "https://realmoney.thestreet.com/authors/carolyn-boroden"
+      },
+      {
+        "Roger Arnold": "https://realmoney.thestreet.com/authors/roger-arnold"
+      },
+      {
+        "Chris Laudani": "https://realmoney.thestreet.com/authors/chris-laudani"
+      },
+      {
+        "Bruce Kamich": "https://realmoney.thestreet.com/authors/bruce-kamich"
+      },
+      {
+        "James Rev Shark Deporre": "https://realmoney.thestreet.com/authors/james-rev-shark-deporre"
+      }
+    ]
+  }
 }

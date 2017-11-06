@@ -13,8 +13,8 @@ var searchPage;
 var queryString;
 var searchSites;
 var searchEngine;
-let baseUrl;
-let anonymus;
+var baseUrl;
+var anonymus;
 var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString', 'searchEngine', 'anonymus'];
 var google = ['www.google.co.in', 'www.google.com', 'search.yahoo.com', 'www.bing.com', 'www.youtube.com'];
 
@@ -58,45 +58,54 @@ function closeWindow (e) {
 
 function clickHandler(e) {
     //loading = true;
-    console.log("in on clik opn");
     const allUrls = document.getElementsByName("link");
-    console.log(allUrls);
-
     const urlsToOpen = [];
     const tabToHilite = [currentTab.index];
     const openAt = currentTab.index + 1;
-    let anonymus;
-    if (allUrls.length === 0) {
-        console.log("link undefined " + allUrls);
-        anonymus = document.getElementById("anonymus").value;
-        const urls = anonymus.split('\n');
-        urls.forEach(function (url) {
-            urlsToOpen.push(url);
-        });
-    } else {
-        allUrls.forEach (function (url) {
-            console.log(url);
-            if (url.checked) {
-                urlsToOpen.push(url.value);
-                console.log("came till here");
-                /*chrome.tabs.create({url: url.value, active : !tabsBackground, index: openAt}, function(tab){
-                    tabToHilite.push(tab.index);
-                    openAt ++;
-                });*/
-                var itemValue = url.value;
-                if (searchPage) {
-                    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                        chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
-                            console.log(response.farewell);
-                        });
-                    });
+    var anonymus;
+    try {
+        if (allUrls.length === 0) {
+            console.log("link undefined " + allUrls);
+            anonymus = document.getElementById("anonymus").value;
+            const urls = anonymus.split('\n');
+            urls.forEach(function (url) {
+                if (url.startsWith('http') || url.startsWith('https')) {
+                    urlsToOpen.push(url);
+                } else {
+                    throw new Error("The url " + url + " does not have protocol  " + "..Please specify and try again");
+                    //return ;
                 }
 
-            } else {
-                console.log("came till here in else");
-            }
-        });
+            });
+        } else {
+            allUrls.forEach (function (url) {
+                console.log(url);
+                if (url.checked) {
+                    urlsToOpen.push(url.value);
+                    console.log("came till here");
+                    /*chrome.tabs.create({url: url.value, active : !tabsBackground, index: openAt}, function(tab){
+                        tabToHilite.push(tab.index);
+                        openAt ++;
+                    });*/
+                    var itemValue = url.value;
+                    if (searchPage) {
+                        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                            chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
+                                console.log(response.farewell);
+                            });
+                        });
+                    }
+
+                } else {
+                    console.log("came till here in else");
+                }
+            });
+        }
+    } catch (err) {
+        document.getElementById("error").innerHTML = err.message;
+        return;
     }
+
 
     console.log(urlsToOpen);
     /*if (highlightTabs) {
@@ -705,7 +714,10 @@ function saveSelection() {
 function editTextArea () {
     let txtAreaContent = this.value;
     console.log("in txt are" + txtAreaContent);
-    if (txtAreaContent !== '') {
+    if (txtAreaContent === '') {
+        document.getElementById('openbtn').hidden = "hidden";
+        document.getElementById("error").innerHTML = "";
+    } else {
         document.getElementById('openbtn').hidden = "";
     }
 }
@@ -943,9 +955,13 @@ function noConfigFound(content) {
 function createRadio(content) {
     //var engDom = getDomain(searchEngine);
     //var engine = engDom.split('.')[0];
-    var engineUrl = new URL(searchEngine);
-    console.log("url hostname eng-" + engineUrl.hostname);
-    var engine = getDomainName(searchEngine); //engineUrl.hostname.split('.')[1];
+    //var engineUrl = new URL(searchEngine);
+    //console.log("url hostname eng-" + engineUrl.hostname);
+    var engine;
+    if (searchPage) {
+        engine = getDomainName(searchEngine); //engineUrl.hostname.split('.')[1];
+    }
+
     var sitesArr = ['https://www.google.com/', 'https://search.yahoo.com/', 'https://www.bing.com/', 'https://www.youtube.com/']; //searchSites.split(',');
 
     var searchContent = document.getElementById('searchContent');
