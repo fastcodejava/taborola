@@ -674,10 +674,10 @@ function saveSelection() {
                                 label = label.split('(')[0];
                             }
                             for (var i=0; i < allTypes.length; i++) {
-                                console.log("vaan" + allTypes[i]);
+                                //console.log("vaan" + JSON.stringify(allTypes[i]));
                                 if (typeof allTypes[i] === 'object') {
                                     if (Object.keys(allTypes[i])[0] === label) {
-                                        if (typeof Object.values(prefForDom[i])[0] === 'object') {
+                                        if (typeof Object.values(allTypes[i])[0] === 'object') {
                                             prefForDom[selectedType][i][label]['selected'] = url.checked;
                                         } else {
                                             prefForDom[selectedType][i][label] = {'selected' : url.checked, url : Object.values(allTypes[i])[0]};
@@ -930,7 +930,9 @@ document.addEventListener('DOMContentLoaded', function () {
 function noConfigFound(content) {
     console.log("domain not set...");
     const divTxt = document.createElement("div");
-    var text = document.createTextNode("Domain not set in preference." + "\n" + "You may enter the URL's to open one below the other in the space given below and open them.");
+    var pre = document.createElement("PRE");
+    var text = document.createTextNode("Domain not set in preference.\nYou may enter the URL's to open,one below the other,\nin the space given below and open them.");
+    pre.appendChild(text);
     divTxt.style.marginLeft = "25px";
     document.getElementById('openbtn').hidden = "hidden";
     //document.getElementById('cancelbtn').hidden = "hidden";
@@ -947,7 +949,7 @@ function noConfigFound(content) {
     document.getElementById('anonymus').onkeyup = editTextArea;
 
 
-    divTxt.appendChild(text);
+    divTxt.appendChild(pre);
     content.appendChild(divTxt);
 
 }
