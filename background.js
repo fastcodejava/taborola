@@ -9,7 +9,7 @@ var lastTab;
 var urls = [];
 var tabToHilite;
 var openAt;
-var firstPage;
+var firstPage = "";
 var invokedWind;
 var startTime;
 var pagesToOpen = [];
@@ -32,7 +32,11 @@ function rotateIcon(rotate)
 {
     keep_switching_icon = rotate === undefined ? keep_switching_icon : rotate;
     const image = keep_switching_icon ? "icons/" + loading_images[image_index] : "icons/ic_title_black_24dp_1x.png";
+    //console.log("currWindow--" + currWindow + "---" + invokedWind);
+    //if (currWindow === invokedWind) {
     chrome.browserAction.setIcon({path: image});
+    //}
+
     image_index = (image_index + 1) % loading_images.length;
 
     if ( keep_switching_icon )
@@ -72,25 +76,40 @@ chrome.storage.onChanged.addListener(function(changes, area) {
                     currentTask = true;
                     openAt ++;
                     startTime = new Date().getTime();
-                    chrome.tabs.create({url: urls[0], active : !tabsBackground, index: parseInt(openAt), windowId : invokedWind}, function(tab){
-                        tabToHilite.push(tab.index);
-                        openAt ++;
-                        //console.log(JSON.stringify(tab));
-                        firstPage = tab.id;
-                        lastTab = tab.id;
-                        console.log("reset" + openAt + urls[0]);
-                        // chrome.browserAction.setIcon({path:"icons/ajax-loader.gif"});
-                        //keep_switching_icon = true;
-                        //console.log(keep_switching_icon);
-                        rotateIcon(true);
-                        chrome.tabs.onRemoved.addListener(function (tabId , info) {
-                            if (tabId === lastTab) {
-                                chrome.storage.sync.set({loading: false}, function() {});
-                                rotateIcon(false);
-                            }
-                        });
+                    //var url = urls[0];
+                    for (var x = 0;x < parseInt(tabToLoad); x++) {
+                        console.log("link----------------" + urls[x]);
+                        url = urls[x];
+                        chrome.tabs.create({url: url, active : !tabsBackground, index: parseInt(openAt), windowId : invokedWind}, function(tab){
+                            tabToHilite.push(tab.index);
+                            //openAt ++;
 
-                    });
+                            //pagesToOpen.shift();
+                            //console.log(JSON.stringify(tab));
+                            if (firstPage === "") {
+                                console.log("x equal to zero");
+                                firstPage = tab.id;
+
+                            }
+                            lastTab = tab.id;
+                            console.log("reset" + openAt + urls[x]);
+                            // chrome.browserAction.setIcon({path:"icons/ajax-loader.gif"});
+                            //keep_switching_icon = true;
+                            //console.log(keep_switching_icon);
+                            rotateIcon(true);
+
+                            chrome.tabs.onRemoved.addListener(function (tabId , info) {
+                                if (tabId === lastTab) {
+                                    chrome.storage.sync.set({loading: false}, function() {});
+                                    rotateIcon(false);
+                                    //chrome.browserAction.setIcon({path: "icons/ic_title_black_24dp_1x.png", tabId : tabId});
+                                }
+                            });
+
+                        });
+                        openAt ++;
+                    }
+
                 } else {
                     openAt ++;
                     chrome.tabs.create({url: urls, active : !tabsBackground, index: parseInt(openAt), windowId : invokedWind}, function(tab){
@@ -159,20 +178,27 @@ chrome.tabs.onUpdated.addListener(function(tabId , changeInfo, info) {
             if (firstPage !== "") {
                 chrome.tabs.update(firstPage, {active: true});
                 firstPage = "";
+                console.log("before-------------" + pagesToOpen);
+                for (var i = 0 ; i < parseInt(tabToLoad) - 1; i ++) {
+                    pagesToOpen.shift();
+                }
+                console.log("after-------------" + pagesToOpen);
             }
             console.log("k is-" + k);
             if (k === parseInt(tabToLoad)) {
                 console.log("k is 2" + new Date().getTime());
                 k = 0;
             }
+
             for ( ;k < parseInt(tabToLoad); k++) {
-                console.log("k inside for--" + k + "---" + new Date().getTime());
+                console.log("k inside for--" + k + "---" + new Date().getTime() + "--------" + pagesToOpen[0]);
                 pagesToOpen.shift();
                 chrome.tabs.create({url: pagesToOpen[0], active : false, index: parseInt(openAt), windowId : invokedWind}, function(tab) {
                     lastTab = tab.id;
                     tabToHilite.push(tab.index);
-                    openAt ++;
+                    //openAt ++;
                 });
+                openAt ++;
                 if (pagesToOpen.length == 1) {
                     return;
                 }

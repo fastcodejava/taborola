@@ -78,6 +78,29 @@ $("div#contents").find("h3 > a").each(function (index) {
 
     //div#title-wrapper
 });
+
+//cnn
+var urlBase = location.origin;
+console.log(urlBase);
+$("div.cd__content").find("h3 > a").each(function (index) {
+    console.log("Title: " + this.text);
+    console.log($(this));
+    //$(this).append("<br><span style='color: orange'>My new line text</span>");
+    console.log('me done');
+    var obj = {};
+    //var urlBase = location.origin;
+    //console.log(urlBase);
+    if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+        console.log("not in hrefadded array");
+        // var partialUrl = $(this).attr('href');
+        //var fullUrl = urlBase + partialUrl;
+        //console.log(fullUrl);
+        obj[this.text] = location.origin + $(this).attr('href');
+        sites.push(obj);
+    }
+
+});
+
 jsonObj['sites'] = sites;
 if (location.origin.indexOf('yahoo') > -1) {
     queryString = document.getElementsByName("p")[0].value;
@@ -97,6 +120,8 @@ console.log(location.origin);*/
 //var urlquery = '';
 //urlquery = location.origin + location.pathname + '?q=' + queryString;
 console.log("Final object...\n" + JSON.stringify(jsonObj));
+console.log("queryStr--" + queryString);
+//chrome.storage.sync.set({'googleSearch': "", 'queryString' : "", 'searchEngine' : ""}, function() {});
 chrome.storage.sync.set({'googleSearch': sites, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
     console.log('Settings saved');
 });
@@ -109,15 +134,18 @@ $("div.srg").find("h3 > a").click(function () {
 });
 
 $('a').click(function(){
+
     //alert('u r going to ' + $(this).attr('href') + '..jst li dt..');
 });
 
-var urlArr = [];
-$('a').each(function(){
-    urlArr.push($(this).attr('href'));
+var urlArr = [];//[id^="yui_"]
+$('a').each(function(index){
+    //urlArr.push($(this).attr('href'));
     //alert('u r going to ' + $(this).attr('href') + '..jst li dt..');
+    //console.log('u r going to ' + $(this).attr('href') + '..jst li dt..' );
+    //console.log( $(this));
 });
-console.log("showing..\n" + urlArr);
+//console.log("showing..\n" + urlArr);
 
 //chrome.runtime.sendMessage({todo: "show_text"});
 

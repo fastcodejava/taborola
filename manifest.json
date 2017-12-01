@@ -33,7 +33,13 @@
     }
   },
   "content_scripts": [{
-    "matches": ["https://www.google.com/*"],
+    "matches": ["https://www.google.co.in/*",
+      "https://www.google.com/*",
+      "https://search.yahoo.com/*",
+      "https://www.bing.com/*",
+      "https://www.youtube.com/*",
+      "https://in.yahoo.com/*",
+      "http://edition.cnn.com/"],
     "js": ["jquery-1.8.0.min.js", "content_script.js"]
   }],
   "browser_action": {

@@ -15,9 +15,11 @@ var searchSites;
 var searchEngine;
 var baseUrl;
 var anonymus;
-var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString', 'searchEngine', 'anonymus'];
-var google = ['www.google.co.in', 'www.google.com', 'search.yahoo.com', 'www.bing.com', 'www.youtube.com'];
-
+var newtab;
+var loadFrom;
+var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString', 'searchEngine', 'anonymus', 'loadFrom'];
+var readPage = ['www.google.co.in', 'www.google.com', 'search.yahoo.com', 'www.bing.com', 'www.youtube.com', 'edition.cnn.com'];
+var searchSite= ['google', 'yahoo', 'bing', 'youtube'];
 
 
 chrome.storage.sync.get( options, function(items) {
@@ -28,11 +30,13 @@ chrome.storage.sync.get( options, function(items) {
     loading = items.loading;
     console.log("in sync get" + loading);
     googleSearch = items.googleSearch;
+    console.log("in sync get search--" + googleSearch);
     parentUrl = items.parentUrl;
     queryString = items.queryString;
     //searchSites = items.searchSites;
     searchEngine = items.searchEngine;
     anonymus =  items.anonymus;
+    loadFrom = items.loadFrom;
 });
 
 function closeWindow (e) {
@@ -62,12 +66,12 @@ function clickHandler(e) {
     const urlsToOpen = [];
     const tabToHilite = [currentTab.index];
     const openAt = currentTab.index + 1;
-    var anonymus;
+    var anonymusValues;
     try {
         if (allUrls.length === 0) {
             console.log("link undefined " + allUrls);
-            anonymus = document.getElementById("anonymus").value;
-            const urls = anonymus.split('\n');
+            anonymusValues = document.getElementById("anonymus").value;
+            const urls = anonymusValues.split('\n');
             urls.forEach(function (url) {
                 if (url.startsWith('http') || url.startsWith('https')) {
                     urlsToOpen.push(url);
@@ -113,7 +117,7 @@ function clickHandler(e) {
     }*/
     chrome.storage.sync.set({urlsToOpen: [], currTab : "", invokedWindow : "", opnSmeTb : "", loading: false}, function() {});
     var opnSmeTab = document.getElementById("sametabChkbx").checked;
-    chrome.storage.sync.set({urlsToOpen: urlsToOpen, currTab: currentTab, invokedWindow: invokedWindow, opnSmeTb: opnSmeTab, loading: true, anonymus : anonymus}, function() {
+    chrome.storage.sync.set({urlsToOpen: urlsToOpen, currTab: currentTab, invokedWindow: invokedWindow, opnSmeTb: opnSmeTab, loading: true, anonymus : anonymusValues}, function() {
         if (chrome.runtime.error) {
             console.log("Runtime error.");
         }
@@ -123,17 +127,17 @@ function clickHandler(e) {
 
 function selectall () {
     const allUrls = document.getElementsByName("link");
-    var parentNode;
+    var parentNode = allUrls[0].parentNode.parentNode.childNodes;
     if (document.getElementById('selectall').checked) {
         allUrls.forEach (function (url) {
             if (currentUrl !== url.value) {
                 url.checked = true;
                 url.nextSibling.nextSibling.style.fontWeight = "bold";
                 document.getElementById("openbtn").disabled = false;
-                document.getElementById("sametab").hidden = true;
+                document.getElementById("sametab").disabled = true;
                 document.getElementById("sametabChkbx").checked = false;
             }
-            parentNode = url.parentNode.parentNode.childNodes;
+
             console.log("kkkkkk-" + url.value);
             var itemValue = url.value;
             if (searchPage) {
@@ -145,6 +149,8 @@ function selectall () {
             }
 
         });
+
+        /*
         var howmany = document.getElementById("howmany");
         var selNums = howManyChecked(parentNode);
         howmany.textContent = selNums + " selected.";
@@ -160,14 +166,14 @@ function selectall () {
             document.getElementsByName('site')[0].disabled = true;
             document.getElementsByName('site')[1].disabled = true;
             document.getElementsByName('site')[2].disabled = true;
-        }
+        }*/
     } else {
         allUrls.forEach (function (url) {
             url.checked = false;
             console.log(url.parentNode);
             url.nextSibling.nextSibling.style.fontWeight = "normal";
             document.getElementById("openbtn").disabled = true;
-            document.getElementById("sametab").hidden = true;
+            document.getElementById("sametab").disabled = true;
             document.getElementById("sametabChkbx").checked = false;
             var itemValue = url.value;
             if (searchPage) {
@@ -179,7 +185,7 @@ function selectall () {
             }
 
         });
-        var howmany = document.getElementById("howmany");
+        /*var howmany = document.getElementById("howmany");
         howmany.textContent = "0 selected.";
         if (document.getElementById('searchAgain')) {
             document.getElementById('searchAgain').disabled = false;
@@ -191,11 +197,11 @@ function selectall () {
         }
         document.getElementsByName('site')[0].disabled = false;
         document.getElementsByName('site')[1].disabled = false;
-        document.getElementsByName('site')[2].disabled = false;
+        document.getElementsByName('site')[2].disabled = false; */
         //document.getElementById('searchAgain').disabled = false;
     }
 
-
+    changeSelection(parentNode);
 }
 
 function linkClick () {
@@ -230,10 +236,10 @@ function chkBoxClick (ele) {
         });
         if (none) {
             console.log("only one");
-            document.getElementById("sametab").hidden = false;
+            document.getElementById("sametab").disabled = false;
             document.getElementById("sametabChkbx").checked = true;
         } else {
-            document.getElementById("sametab").hidden = true;
+            document.getElementById("sametab").disabled = true;
             document.getElementById("sametabChkbx").checked = false;
         }
 
@@ -268,32 +274,39 @@ function chkBoxClick (ele) {
     } else {
         this.labels[0].style.fontWeight="normal";
         document.getElementById("openbtn").disabled = true;
-        document.getElementById("sametab").hidden = true;
+        document.getElementById("sametab").disabled = true;
         document.getElementById("sametabChkbx").checked = false;
         if (atleastOneChecked(this.parentNode.parentNode.childNodes)) {
             document.getElementById("openbtn").disabled = false;
         }
         if (moreThanOneChecked(this.parentNode.parentNode.childNodes)) {
             console.log("more than one checked");
-            document.getElementById("sametab").hidden = true;
+            document.getElementById("sametab").disabled = true;
             document.getElementById("sametabChkbx").checked = false;
         } else {
-            document.getElementById("sametab").hidden = false;
+            document.getElementById("sametab").disabled = false;
             document.getElementById("sametabChkbx").checked = true;
         }
 
-        var itemValue = this.value;
+        var selItems = this.value;
         if (searchPage) {
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
+                chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: selItems}, function(response) {
                     console.log(response.farewell);
                 });
             });
         }
 
     }
+    changeSelection(this.parentNode.parentNode.childNodes);
+    //console.log("len--" + this.parentNode.parentNode.childNodes.length);
+}
+
+function changeSelection (listNodes) {
+
     var howmany = document.getElementById("howmany");
-    var selNums = howManyChecked(this.parentNode.parentNode.childNodes);
+    var selNums = howManyChecked(listNodes);
+    console.log(listNodes.length + "***" + selNums);
     howmany.textContent = selNums + " selected.";
     if (selNums === 0) {
         if (document.getElementById('searchAgain')) {
@@ -322,13 +335,13 @@ function chkBoxClick (ele) {
         document.getElementsByName('site')[2].disabled = true;
         //document.getElementById('searchAgain').disabled = true;
     }
-    if (selNums < this.parentNode.parentNode.childNodes.length) {
+    console.log("selected--" + selNums + "--list len--" + listNodes.length);
+    if (selNums < listNodes.length) {
         document.getElementById('selectall').checked = false;
     }
-    if (selNums === this.parentNode.parentNode.childNodes.length) {
+    if (selNums === listNodes.length) {
         document.getElementById('selectall').checked = true;
     }
-    //console.log("len--" + this.parentNode.parentNode.childNodes.length);
 }
 
 function howManyChecked(liNodes) {
@@ -382,7 +395,22 @@ function addUrl() {
        var name = hostNameArray[1];//domain.split('.')[0];
        //var jsonObj = {};*/
         var name = getDomainName(tab.url);
-
+        let textBox = document.getElementById('anonymus');
+        var newObjArr = [];
+        if (textBox) {
+            console.log(textBox.value);
+            if (textBox.value !== '') {
+                var values = textBox.value.split('\n');
+                values.forEach(function (value){
+                    var obj = {};
+                    var key = getKeyFromURL(value.split('/'));
+                    obj[key] = value;
+                    newObjArr.push(obj);
+                });
+            }
+            //var newURLs = textBox.value ? textBox.value.replace('\n', ',') : '';
+            console.log(newObjArr);
+        }
         chrome.storage.sync.get( "jsonData", function(items) {
             console.log(JSON.stringify(items));
             var origObj = items.jsonData;
@@ -393,26 +421,37 @@ function addUrl() {
             }*/
             //var prefForDom = origObj[fullDomain] || origObj[name];
             var prefForDom = getPreferences(fullDomain, name, origObj);
-            console.log(prefForDom + " --- llllllll");
+            console.log("==" + prefForDom + "--- llllllll");
             var newEntryObj = {};
             var path = url.pathname.split('/');
-            if (path.length === 0) {
-                newEntryObj[name] = currentUrl;
+            var key = getKeyFromURL(path);
+            /*if (path.length === 0) {
+                //newEntryObj[name] = currentUrl;
+                key = name;
             } else {
                 if (path[path.length-1].indexOf('=') === -1) {
-                    newEntryObj[path[path.length-1]] = currentUrl;
+                    //newEntryObj[path[path.length-1]] = currentUrl;
+                    key = path[path.length-1];
                 } else {
-                    newEntryObj[path[1]] = currentUrl;
+                    //newEntryObj[path[1]] = currentUrl;
+                    key  = path[1];
                 }
             }
-
+            if (key === '') {
+                key = 'Home';
+            }*/
+            newEntryObj[key] = currentUrl;
+            console.log(newEntryObj);
+            //if (newObjArr.length > 0) {
+            newObjArr.push(newEntryObj);
+            //}
             //path[path.length];
             //var nameKey = url.pathname.endsWith('/') ? url.pathname[url.pathname.length - 2] : url.pathname[url.pathname.length - 1];
 
             console.log(path.length);
             console.log("dom-" + path + "--" + path[path.length-1]);
-
             if (prefForDom) {
+                console.log('in if');
                 if (Array.isArray(prefForDom)) {
                     prefForDom.push(newEntryObj);
                 } else {
@@ -428,11 +467,12 @@ function addUrl() {
 
 
             } else {
+                console.log('in else');
                 //origObj[name] = [currentUrl];
                 var newObj = {};
                 newObj["current"] = name;
                 newObj["description"] = name;
-                newObj["sites"] = [newEntryObj];
+                newObj["sites"] = newObjArr; //[newEntryObj];
                 origObj[name] = newObj;
             }
             //origObj[name] = [currentUrl];
@@ -453,6 +493,27 @@ function addUrl() {
     });
 }
 
+function getKeyFromURL (path) {
+    //var path = url.pathname.split('/');
+    console.log(path);
+    var key;
+    if (path.length === 0) {
+        //newEntryObj[name] = currentUrl;
+        key = name;
+    } else {
+        if (path[path.length-1].indexOf('=') === -1) {
+            //newEntryObj[path[path.length-1]] = currentUrl;
+            key = path[path.length-1];
+        } else {
+            //newEntryObj[path[1]] = currentUrl;
+            key  = path[1];
+        }
+    }
+    if (key === '') {
+        key = 'Home';
+    }
+    return key;
+}
 
 function searchAgain () {
     var urlSite = '';
@@ -548,7 +609,7 @@ function sortListDir() {
         } else {
             /*If no switching has been done AND the direction is "asc",
             set the direction to "desc" and run the while loop again.*/
-            if (switchcount == 0 && dir == "asc") {
+            if (switchcount === 0 && dir == "asc") {
                 dir = "desc";
                 switching = true;
 
@@ -709,16 +770,20 @@ function saveSelection() {
                 });
         });
     });
+
+    /*const allUrls = document.getElementsByName("link");
+    var parentNode = allUrls[0].parentNode.parentNode.childNodes;
+    changeSelection(parentNode);*/
 }
 
 function editTextArea () {
     let txtAreaContent = this.value;
     console.log("in txt are" + txtAreaContent);
     if (txtAreaContent === '') {
-        document.getElementById('openbtn').hidden = "hidden";
+        document.getElementById('openbtn').disabled = true;
         document.getElementById("error").innerHTML = "";
     } else {
-        document.getElementById('openbtn').hidden = "";
+        document.getElementById('openbtn').disabled = false;
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
@@ -735,7 +800,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //document.getElementById('searchAgain').addEventListener('click', searchAgain);
     document.getElementById('sortListDir').addEventListener('click', sortListDir);
     //document.getElementById('searchbtn').addEventListener('click', searchInSite);
-    onclick="()"
+    onclick="()";
     console.log("lod--" + loading);
     console.log("jsondata--" + jsonData);
     var content = document.getElementById('content');
@@ -744,8 +809,11 @@ document.addEventListener('DOMContentLoaded', function () {
     getCurrentTabUrl(function(tab) {
         currentUrl = tab.url;
         if (currentUrl === "chrome://newtab/") {
-            window.close();
-            return;
+            //window.close();
+            //return;
+            newtab = true;
+        } else {
+            newtab = false;
         }
 
         var url = new URL(tab.url);
@@ -766,111 +834,128 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         var prefForDom;
         console.log("test--" + isFromSearch(currentUrl));
-        if (google.indexOf (url.hostname) > -1 || isFromSearch(currentUrl)) {
-            console.log("inside google");
-            if (googleSearch === undefined || Object.keys(googleSearch).length === 0)  {
-                //console.log("google seach list is empty");
-                //window.close();
-                //return;
-                var text = document.createTextNode("No previous search results found. Please try a fresh search.");
+        console.log("loadFrom-" + loadFrom);
+        var fromPage = true;
+        if (loadFrom === 'config' && searchSite.indexOf(url.hostname) === -1) {
+            fromPage = false;
+        }
+        if (!newtab) {
+            if (fromPage) {
+                if (readPage.indexOf (url.hostname) > -1 || isFromSearch(currentUrl)) {
+                    console.log("inside google");
+                    if (googleSearch === undefined || Object.keys(googleSearch).length === 0)  {
+                        //console.log("google seach list is empty");
+                        //window.close();
+                        //return;
+                        var text = document.createTextNode("No previous search results found. Please try a fresh search.");
+                        document.getElementById('openbtn').disabled = true;
+                        //document.getElementById('cancelbtn').hidden = "hidden";
+                        document.getElementById('selectall').disabled = true;
+                        document.getElementById('selectall').nextSibling.nodeValue = "";
+                        document.getElementById('sortListDir').disabled = true;
+                        console.log(document.getElementById('sortListDir').nextSibling.nodeValue + "fffk");
+
+                        //document.getElementById('sortListDir').nextSibling.nodeValue = "";
+                        //document.getElementById('searchAgain').hidden = "hidden";
+                        //document.getElementById('addbtn').hidden = "";
+                        content.appendChild(text);
+                        return;
+
+                    }
+                    console.log("Check1 " + JSON.stringify(googleSearch));
+                    prefForDom = googleSearch;
+                    console.log("check2-" + prefForDom + "-");
+                    document.getElementById('addbtn').disabled = true;
+                    document.getElementById('savebtn').disabled = true;
+                    //document.getElementById('searchbtn').hidden = "hidden";
+                    //document.getElementById('searchText').hidden = "hidden";
+                    content.style.width = "600px";
+                    document.getElementById('body').style.width = "603px";
+                    searchPage = true;
+                    if (googleSearch === "") {
+                        console.log("Search list is empty");
+                    }
+                    var engineName = getDomainName(searchEngine); //new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
+                    var div = document.createElement('div');
+                    div.setAttribute("align", "center");
+                    var engineLogo = document.createElement("IMG");
+                    console.log("get favicon--" + searchEngine);
+                    engineLogo.setAttribute("src", 'chrome://favicon/'+ searchEngine);
+                    //engineLogo.setAttribute("src", '/icons/' + engineName + '.ico');
+                    engineLogo.style.cssFloat   = 'middle';
+                    div.appendChild(engineLogo);
+                    //var domain = getDomain(searchEngine);
+                    //var engineName = new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
+
+                    var searchEngineTxt = document.createTextNode(" " + engineName + " results.");
+                    div.appendChild(searchEngineTxt);
+                    content.appendChild(div);
+                }
+            }
+
+
+            if (prefForDom === undefined) {
+                prefForDom = getPreferences(url.hostname, name); //jsonData[url.hostname] || jsonData[name];
+                //content.style.width = "200px";
+                //ocument.getElementById('searchAgain').hidden = "hidden";
+                searchPage = false;
+            }
+
+
+
+
+            console.log(jsonData);
+            console.log(prefForDom);
+            if(prefForDom){
+                //console.log(typeof allurls);
+                if (Array.isArray(prefForDom)) {
+                    console.log("pref dom is an array");
+                    if (prefForDom.length > 0) {
+                        content.appendChild(createList(prefForDom));
+                    } else {
+                        noConfigFound(content);
+                    }
+                } else {
+                    content.appendChild(createDropDown(prefForDom, name));
+                    var label = document.createElement('label');
+                    var txt = document.createTextNode("Options ");
+                    label.setAttribute("for", "typeSelect");
+                    label.appendChild(txt);
+                    label.style.marginLeft = "25px";
+                    content.insertBefore(label,document.getElementById("typeSelect"));
+                    var type = document.getElementById("typeSelect");
+                    //type.style.marginLeft = "25px";
+                    var selectedType = type.options[type.selectedIndex].value;
+                    content.appendChild(createList(prefForDom[selectedType]));
+                }
+                //document.getElementsByName("link").addEventListener('click', chkBoxClick);
+                if (selectAll && searchPage) {
+                    document.getElementById('selectall').checked = true;
+                }
+                createRadio(content);
+                //document.getElementById('addbtn').hidden = "hidden";
+                const allUrls = document.getElementsByName("link");
+                var parentNode = allUrls[0].parentNode.parentNode.childNodes;
+                changeSelection(parentNode);
+            } else {
+                console.log("domain not set...");
+                noConfigFound(content);
+                /*var text = document.createTextNode("Domain not set in preference.");
                 document.getElementById('openbtn').hidden = "hidden";
-                //document.getElementById('cancelbtn').hidden = "hidden";
                 document.getElementById('selectall').hidden = "hidden";
                 document.getElementById('selectall').nextSibling.nodeValue = "";
                 document.getElementById('sortListDir').hidden = "hidden";
-                console.log(document.getElementById('sortListDir').nextSibling.nodeValue + "fffk");
-
                 document.getElementById('sortListDir').nextSibling.nodeValue = "";
-                //document.getElementById('searchAgain').hidden = "hidden";
-                //document.getElementById('addbtn').hidden = "";
-                content.appendChild(text);
-                return;
+                document.getElementById('anonymus').hidden = "";
+                content.appendChild(text);*/
 
             }
-            console.log("Check1 " + JSON.stringify(googleSearch));
-            prefForDom = googleSearch;
-            console.log("check2-" + prefForDom + "-");
-            document.getElementById('addbtn').hidden = "hidden";
-            document.getElementById('savebtn').hidden = "hidden";
-            //document.getElementById('searchbtn').hidden = "hidden";
-            //document.getElementById('searchText').hidden = "hidden";
-            content.style.width = "600px";
-            document.getElementById('body').style.width = "603px";
-            searchPage = true;
-            if (googleSearch === "") {
-                console.log("Search list is empty");
-            }
-            var engineName = getDomainName(searchEngine); //new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
-            var div = document.createElement('div');
-            div.setAttribute("align", "center");
-            var engineLogo = document.createElement("IMG");
-            console.log("get favicon--" + searchEngine);
-            engineLogo.setAttribute("src", 'chrome://favicon/'+ searchEngine);
-            //engineLogo.setAttribute("src", '/icons/' + engineName + '.ico');
-            engineLogo.style.cssFloat   = 'middle';
-            div.appendChild(engineLogo);
-            //var domain = getDomain(searchEngine);
-            //var engineName = new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
-
-            var searchEngineTxt = document.createTextNode(" " + engineName + " results.");
-            div.appendChild(searchEngineTxt);
-            content.appendChild(div);
-        }
-
-        if (prefForDom === undefined) {
-            prefForDom = getPreferences(url.hostname, name); //jsonData[url.hostname] || jsonData[name];
-            //content.style.width = "200px";
-            //ocument.getElementById('searchAgain').hidden = "hidden";
-            searchPage = false;
-        }
 
 
-
-
-        console.log(jsonData);
-        console.log(prefForDom);
-        if(prefForDom){
-            //console.log(typeof allurls);
-            if (Array.isArray(prefForDom)) {
-                console.log("pref dom is an array")
-                if (prefForDom.length > 0) {
-                    content.appendChild(createList(prefForDom));
-                } else {
-                    noConfigFound(content);
-                }
-            } else {
-                content.appendChild(createDropDown(prefForDom, name));
-                var label = document.createElement('label');
-                var txt = document.createTextNode("Options ");
-                label.setAttribute("for", "typeSelect");
-                label.appendChild(txt);
-                label.style.marginLeft = "25px";
-                content.insertBefore(label,document.getElementById("typeSelect"));
-                var type = document.getElementById("typeSelect");
-                //type.style.marginLeft = "25px";
-                var selectedType = type.options[type.selectedIndex].value;
-                content.appendChild(createList(prefForDom[selectedType]));
-            }
-            //document.getElementsByName("link").addEventListener('click', chkBoxClick);
-            if (selectAll) {
-                document.getElementById('selectall').checked = true;
-            }
-            createRadio(content);
-            //document.getElementById('addbtn').hidden = "hidden";
         } else {
-            console.log("domain not set...");
-            noConfigFound(content);
-            /*var text = document.createTextNode("Domain not set in preference.");
-            document.getElementById('openbtn').hidden = "hidden";
-            document.getElementById('selectall').hidden = "hidden";
-            document.getElementById('selectall').nextSibling.nodeValue = "";
-            document.getElementById('sortListDir').hidden = "hidden";
-            document.getElementById('sortListDir').nextSibling.nodeValue = "";
-            document.getElementById('anonymus').hidden = "";
-            content.appendChild(text);*/
-
+            var mesg = "Bank Page.";
+            noConfigFound(content, mesg);
         }
-
 
 
 
@@ -927,24 +1012,32 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('progress').hidden = true;
 });
 
-function noConfigFound(content) {
+function noConfigFound(content, msg) {
     console.log("domain not set...");
+    var textContent = "\nYou may enter the URL's to open,one below the other,\nin the space given below and open them.";
+    if (msg) {
+        textContent = msg + textContent;
+        document.getElementById('addbtn').disabled = true;
+    } else {
+        textContent = "Domain not set in preference." + textContent;
+    }
     const divTxt = document.createElement("div");
     var pre = document.createElement("PRE");
-    var text = document.createTextNode("Domain not set in preference.\nYou may enter the URL's to open,one below the other,\nin the space given below and open them.");
+    var text = document.createTextNode(textContent);//"Domain not set in preference.\nYou may enter the URL's to open,one below the other,\nin the space given below and open them.");
     pre.appendChild(text);
     divTxt.style.marginLeft = "25px";
-    document.getElementById('openbtn').hidden = "hidden";
+    document.getElementById('openbtn').disabled = true;
     //document.getElementById('cancelbtn').hidden = "hidden";
-    document.getElementById('selectall').hidden = "hidden";
-    document.getElementById('selectall').nextSibling.nodeValue = "";
-    document.getElementById('sortListDir').hidden = "hidden";
-    document.getElementById('sortListDir').nextSibling.nodeValue = "";
-    //document.getElementById('addbtn').hidden = "";
+    document.getElementById('selectall').disabled = true;
+    //document.getElementById('selectall').nextSibling.nodeValue = "";
+    document.getElementById('sortListDir').disabled = true;
+    //document.getElementById('sortListDir').nextSibling.nodeValue = "";
+
+    document.getElementById('savebtn').disabled = true;
     document.getElementById('anonymus').hidden = "";
     if (anonymus) {
         document.getElementById('anonymus').value = anonymus;
-        document.getElementById('openbtn').hidden = "";
+        document.getElementById('openbtn').disabled = false;
     }
     document.getElementById('anonymus').onkeyup = editTextArea;
 
@@ -964,7 +1057,7 @@ function createRadio(content) {
         engine = getDomainName(searchEngine); //engineUrl.hostname.split('.')[1];
     }
 
-    var sitesArr = ['https://www.google.com/', 'https://search.yahoo.com/', 'https://www.bing.com/', 'https://www.youtube.com/']; //searchSites.split(',');
+    var sitesArr = ['https://www.google.com/', 'https://search.yahoo.com/', 'https://www.bing.com/']; //searchSites.split(',');//, 'https://www.youtube.com/'
 
     var searchContent = document.getElementById('searchContent');
 
@@ -1024,7 +1117,7 @@ function createRadio(content) {
     searchAgainBtn.setAttribute("type", "button");
     selectAll ? searchAgainBtn.disabled = true : searchAgainBtn.disabled = false;
     if (searchPage) {
-        /*var radio = document.createElement("INPUT");
+        var radio = document.createElement("INPUT");
         radio.setAttribute("type", "radio");
         radio.setAttribute("value", both);
         radio.setAttribute("name", "site");
@@ -1032,7 +1125,7 @@ function createRadio(content) {
         var label = document.createElement("label");
         label.innerHTML = "Both";
         searchDiv.appendChild(radio);
-        searchDiv.appendChild(label);*/
+        searchDiv.appendChild(label);
         searchAgainBtn.setAttribute("id", "searchAgain");
         searchAgainBtn.setAttribute("value", "Search Again");
         searchAgainBtn.onclick = searchAgain;
@@ -1082,7 +1175,7 @@ function getPreferences(url_hostname, name, dataObj) {
         dataObj = jsonData;
     }
     console.log(url_hostname + " -- " + name );
-    let pref = [];
+    let pref;// = [];
     for (var item in dataObj) {
         let domain;
         domain = dataObj[item]['current'];
@@ -1126,12 +1219,14 @@ function createList(allurls) {
     //list.setAttribute("")
     if (!searchPage) {
         list.style.width = "100%";
+        selectAll = true;
     }
     list.style.align = "right";
 
     var i=1;
     var value="";
     var bgColor = "#EDEEED"; //"#F4F6F7";
+
     allurls.forEach(function(page) {
         console.log("in createList " + JSON.stringify(page));
         //console.log(Object.keys(page));
@@ -1152,7 +1247,7 @@ function createList(allurls) {
                 }
                 input.setAttribute("value", linkObj);
                 input.setAttribute("Alt", url.alt);
-                if (currentUrl !== linkObj && url.selected !== false && selectAll) {
+                if (currentUrl !== linkObj && url.selected !== false) { // && selectAll
                     input.setAttribute("checked", true);
                     label.style.fontWeight = "bold";
                     if (searchPage) {
@@ -1222,7 +1317,7 @@ function createList(allurls) {
         if (currentUrl === linkObj) {
             key =  key + "(Current Tab)";
             console.log("kkk"+key);
-            document.getElementById('addbtn').hidden = "hidden";
+            document.getElementById('addbtn').disabled = true;
         }
         var id = key; //Object.keys(page)[0];
         input.setAttribute("id", id);
@@ -1272,12 +1367,12 @@ function createList(allurls) {
             bgColor = "#EDEEED"; //"#F4F6F7";
         }
     });
-    var howmany = document.getElementById("howmany");
+    /*var howmany = document.getElementById("howmany");
     if (selectAll) {
         howmany.textContent = allurls.length + " selected.";
     } else {
         howmany.textContent = "0 selected.";
-    }
+    }*/
     return list;
 
 
@@ -1301,6 +1396,10 @@ function selectOption() {
     if (Array.isArray(allTypes[selectedType])){
         content.appendChild(createList(allTypes[selectedType]));
     }
+    const allUrls = document.getElementsByName("link");
+    var parentNode = allUrls[0].parentNode.parentNode.childNodes;
+    changeSelection(parentNode);
+
 }
 
 

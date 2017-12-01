@@ -9,6 +9,7 @@ function save_options() {
     var selectAll = document.getElementById('selectAll').checked;
     var timeOut = document.getElementById('timeOut').value;
     var tabToLoad = document.getElementById('tabToLoad').value;
+    var loadFrom = document.getElementsByName('loadFrom')[0].checked ? document.getElementsByName('loadFrom')[0].value : document.getElementsByName('loadFrom')[1].value;
     //var searchSites = document.getElementById('searchSites').value;
 
     if (jsonData.trim() === '') {
@@ -46,7 +47,8 @@ function save_options() {
             highlightTabs: highlightTabs,
             selectAll: selectAll,
             timeOut : timeOut,
-            tabToLoad : tabToLoad},
+            tabToLoad : tabToLoad,
+            loadFrom : loadFrom},
         function() {
             // Update status to let user know options were saved.
             var status = document.getElementById('status');
@@ -89,10 +91,10 @@ function validJson(jsonObj) {
                     if (typeof siteItem === 'object') {
                         if (typeof Object.values(siteItem)[0] === 'object') {
                             linkObj = Object.values(siteItem)[0].url;
-                            alert("Link-A--1-" + JSON.stringify(linkObj));
+                            //alert("Link-A--1-" + JSON.stringify(linkObj));
                         } else {
                             linkObj = Object.values(siteItem)[0];
-                            alert("Link-A--2-" + JSON.stringify(linkObj));
+                            //alert("Link-A--2-" + JSON.stringify(linkObj));
                         }
                     }
                     if (linkObj.indexOf("http") === -1) {
@@ -105,10 +107,10 @@ function validJson(jsonObj) {
             } else if (typeof sites[index] === 'object') {
                 if (typeof Object.values(sites[index])[0] === 'object') {
                     linkObj = Object.values(sites[index])[0].url;
-                    alert("Link-B-" + linkObj);
+                    //alert("Link-B-" + linkObj);
                 } else {
                     linkObj = Object.values(sites[index])[0];
-                    alert("Link-C-" + linkObj);
+                    //alert("Link-C-" + linkObj);
                 }
                 if (linkObj.indexOf("http") === -1) {
                     linkObj = getBaseURL(current) + linkObj;
@@ -118,7 +120,7 @@ function validJson(jsonObj) {
                 }
             }  else {
                 linkObj = sites[index];
-                alert("Link-D-" + linkObj);
+                //alert("Link-D-" + linkObj);
                 if (linkObj.indexOf("http") === -1) {
                     linkObj = getBaseURL(current) + linkObj;
                 }
@@ -192,9 +194,9 @@ function doesUrlRepeat(linkObj, jsonObj, current) {
                     if (url.indexOf("http") === -1) {
                         url = getBaseURL(curr) + url;
                     }
-                    alert("link--" + linkObj + "\n" + "site--" + url);
+                    //alert("link--" + linkObj + "\n" + "site--" + url);
                     if (linkObj === url) {
-                        alert("me here AA");
+                        //alert("me here AA");
                         //alert("The url " + linkObj + "is defined under " + current + " and " + curr + "..Please correct and try again");
                         if (!firstOccurance) {
                             let mesg;
@@ -220,10 +222,10 @@ function doesUrlRepeat(linkObj, jsonObj, current) {
                 if (url.indexOf("http") === -1) {
                     url = getBaseURL(curr) + url;
                 }
-                alert("link--" + linkObj + "\n" + "site--" + url);
+                //alert("link--" + linkObj + "\n" + "site--" + url);
 
                 if (linkObj === url) {
-                    alert("me here A");
+                    //alert("me here A");
                     //alert("The url " + linkObj + "is defined under " + current + " and " + curr + "..Please correct and try again");
                     if (!firstOccurance) {
                         let mesg;
@@ -243,10 +245,10 @@ function doesUrlRepeat(linkObj, jsonObj, current) {
                 if (url.indexOf("http") === -1) {
                     url = getBaseURL(curr) + url;
                 }
-                alert("link--" + linkObj + "\n" + "site--" + url);
+                //alert("link--" + linkObj + "\n" + "site--" + url);
 
                 if (linkObj === url) {
-                    alert("me here B");
+                    //alert("me here B");
                     //	alert("The url " + linkObj + "is defined under " + current + " and " + curr + "..Please correct and try again");
                     if (!firstOccurance) {
                         let mesg;
@@ -284,13 +286,21 @@ function restore_options() {
         highlightTabs: true,
         selectAll: true,
         timeOut: 30,
-        tabToLoad : 2
+        tabToLoad : 2,
+        loadFrom : "config"
     }, function(items) {
         document.getElementById('tabsBackground').checked = items.tabsBackground;
         document.getElementById('highlightTabs').checked = items.highlightTabs;
         document.getElementById('selectAll').checked = items.selectAll;
         document.getElementById('timeOut').value = items.timeOut;
         document.getElementById('tabToLoad').value = items.tabToLoad;
+        alert(items.loadFrom);
+        if (items.loadFrom === 'config'){
+            document.getElementsByName('loadFrom')[0].checked = true;
+        } else {
+            document.getElementsByName('loadFrom')[1].checked = true;
+        }
+
         //document.getElementById('searchSites').value = items.searchSites;
 
 
