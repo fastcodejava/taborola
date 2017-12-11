@@ -11,7 +11,7 @@ function save_options() {
     var tabToLoad = document.getElementById('tabToLoad').value;
     var loadFrom = document.getElementsByName('loadFrom')[0].checked ? document.getElementsByName('loadFrom')[0].value : document.getElementsByName('loadFrom')[1].value;
     //var searchSites = document.getElementById('searchSites').value;
-
+    alert(tabToLoad);
     if (jsonData.trim() === '') {
         return;
     }

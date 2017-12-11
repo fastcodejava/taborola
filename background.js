@@ -71,13 +71,15 @@ chrome.storage.onChanged.addListener(function(changes, area) {
             invokedWind = changes.invokedWindow.newValue;
             console.log("invoked from " + invokedWind + "\n urls-" + urls.length);
             console.log("list of urls to open--" + urls);
+            console.log(tabToLoad);
             if (!changes.opnSmeTb.newValue) {
                 if (Array.isArray(urls)) {
                     currentTask = true;
                     openAt ++;
                     startTime = new Date().getTime();
                     //var url = urls[0];
-                    for (var x = 0;x < parseInt(tabToLoad); x++) {
+                    var loopLimit = urls.length < parseInt(tabToLoad) ? urls.length : parseInt(tabToLoad);
+                    for (var x = 0;x < loopLimit; x++) {
                         console.log("link----------------" + urls[x]);
                         url = urls[x];
                         chrome.tabs.create({url: url, active : !tabsBackground, index: parseInt(openAt), windowId : invokedWind}, function(tab){
@@ -92,7 +94,7 @@ chrome.storage.onChanged.addListener(function(changes, area) {
 
                             }
                             lastTab = tab.id;
-                            console.log("reset" + openAt + urls[x]);
+                            console.log("reset" + openAt + url);
                             // chrome.browserAction.setIcon({path:"icons/ajax-loader.gif"});
                             //keep_switching_icon = true;
                             //console.log(keep_switching_icon);
@@ -108,6 +110,7 @@ chrome.storage.onChanged.addListener(function(changes, area) {
 
                         });
                         openAt ++;
+
                     }
 
                 } else {
@@ -178,11 +181,11 @@ chrome.tabs.onUpdated.addListener(function(tabId , changeInfo, info) {
             if (firstPage !== "") {
                 chrome.tabs.update(firstPage, {active: true});
                 firstPage = "";
-                console.log("before-------------" + pagesToOpen);
+                console.log("before-------------" + pagesToOpen.length);
                 for (var i = 0 ; i < parseInt(tabToLoad) - 1; i ++) {
                     pagesToOpen.shift();
                 }
-                console.log("after-------------" + pagesToOpen);
+                console.log("after-------------" + pagesToOpen.length);
             }
             console.log("k is-" + k);
             if (k === parseInt(tabToLoad)) {
@@ -193,19 +196,24 @@ chrome.tabs.onUpdated.addListener(function(tabId , changeInfo, info) {
             for ( ;k < parseInt(tabToLoad); k++) {
                 console.log("k inside for--" + k + "---" + new Date().getTime() + "--------" + pagesToOpen[0]);
                 pagesToOpen.shift();
-                chrome.tabs.create({url: pagesToOpen[0], active : false, index: parseInt(openAt), windowId : invokedWind}, function(tab) {
-                    lastTab = tab.id;
-                    tabToHilite.push(tab.index);
-                    //openAt ++;
-                });
+                console.log(pagesToOpen.length);
+                if (pagesToOpen.length > 0 ){
+                    chrome.tabs.create({url: pagesToOpen[0], active : false, index: parseInt(openAt), windowId : invokedWind}, function(tab) {
+                        lastTab = tab.id;
+                        tabToHilite.push(tab.index);
+                        //openAt ++;
+                    });
+                }
+
                 openAt ++;
-                if (pagesToOpen.length == 1) {
+                if (pagesToOpen.length === 1) {
                     return;
                 }
             }
 
         }
-        if (info.status === "complete"  &&  tabId === lastTab && pagesToOpen.length == 1) {
+        if (info.status === "complete"  &&  tabId === lastTab && pagesToOpen.length <= 1) {
+            console.log("current task done...");
             chrome.browserAction.setIcon({path:"icons/ic_title_black_24dp_1x.png"});
             //chrome.runtime.sendMessage({msg: "completed"}, function(response) {});
             chrome.storage.sync.set({loading: false}, function() {});
@@ -220,7 +228,9 @@ chrome.tabs.onUpdated.addListener(function(tabId , changeInfo, info) {
 /*
 chrome.browserAction.onClicked.addListener(function(tab) {
 	console.log("call adi");
-  //chrome.tabs.executeScript(null, {file: "content_script.js"});
+  chrome.tabs.executeScript({file: "./popup.js"});
+
+
 });*/
 
 /*

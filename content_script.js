@@ -121,8 +121,9 @@ console.log(location.origin);*/
 //urlquery = location.origin + location.pathname + '?q=' + queryString;
 console.log("Final object...\n" + JSON.stringify(jsonObj));
 console.log("queryStr--" + queryString);
-//chrome.storage.sync.set({'googleSearch': "", 'queryString' : "", 'searchEngine' : ""}, function() {});
-chrome.storage.sync.set({'googleSearch': sites, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+chrome.storage.local.set({'googleSearch': "", 'queryString' : "", 'searchEngine' : ""}, function() {});
+//chrome.storage.sync.StorageArea.remove(['googleSearch', 'queryString', 'searchEngine']);
+chrome.storage.local.set({'googleSearch': sites, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
     console.log('Settings saved');
 });
 
