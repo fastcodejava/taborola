@@ -16,7 +16,9 @@
     "chrome_style": true
   },
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
   "commands": {
     "toggle-feature": {
@@ -32,16 +34,26 @@
       }
     }
   },
-  "content_scripts": [{
-    "matches": ["https://www.google.co.in/*",
-      "https://www.google.com/*",
-      "https://search.yahoo.com/*",
-      "https://www.bing.com/*",
-      "https://www.youtube.com/*",
-      "https://in.yahoo.com/*",
-      "http://www.cnn.com/"],
-    "js": ["jquery-1.8.0.min.js", "content_script.js"]
-  }],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.google.co.in/*",
+        "https://www.google.com/*",
+        "https://search.yahoo.com/*",
+        "https://www.bing.com/*",
+        "https://www.youtube.com/*",
+        "https://in.yahoo.com/*",
+        "http://wwww.cnn.com/*",
+        "https://stackoverflow.com/*",
+        "https://www.washingtonpost.com/*"
+      ],
+      "js": [
+        "jquery-1.8.0.min.js",
+        "content_script.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
   "browser_action": {
     "default_title": "Open my pages.",
     "default_icon": "icons/ic_title_black_24dp_1x.png",

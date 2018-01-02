@@ -9,7 +9,7 @@ function save_options() {
     var selectAll = document.getElementById('selectAll').checked;
     var timeOut = document.getElementById('timeOut').value;
     var tabToLoad = document.getElementById('tabToLoad').value;
-    var loadFrom = document.getElementsByName('loadFrom')[0].checked ? document.getElementsByName('loadFrom')[0].value : document.getElementsByName('loadFrom')[1].value;
+    //var loadFrom = document.getElementsByName('loadFrom')[0].checked ? document.getElementsByName('loadFrom')[0].value : document.getElementsByName('loadFrom')[1].value;
     //var searchSites = document.getElementById('searchSites').value;
     alert(tabToLoad);
     if (jsonData.trim() === '') {
@@ -47,8 +47,7 @@ function save_options() {
             highlightTabs: highlightTabs,
             selectAll: selectAll,
             timeOut : timeOut,
-            tabToLoad : tabToLoad,
-            loadFrom : loadFrom},
+            tabToLoad : tabToLoad},
         function() {
             // Update status to let user know options were saved.
             var status = document.getElementById('status');
@@ -286,20 +285,19 @@ function restore_options() {
         highlightTabs: true,
         selectAll: true,
         timeOut: 30,
-        tabToLoad : 2,
-        loadFrom : "config"
+        tabToLoad : 2
     }, function(items) {
         document.getElementById('tabsBackground').checked = items.tabsBackground;
         document.getElementById('highlightTabs').checked = items.highlightTabs;
         document.getElementById('selectAll').checked = items.selectAll;
         document.getElementById('timeOut').value = items.timeOut;
         document.getElementById('tabToLoad').value = items.tabToLoad;
-        alert(items.loadFrom);
+        /*alert(items.loadFrom);
         if (items.loadFrom === 'config'){
             document.getElementsByName('loadFrom')[0].checked = true;
         } else {
             document.getElementsByName('loadFrom')[1].checked = true;
-        }
+        } */
 
         //document.getElementById('searchSites').value = items.searchSites;
 

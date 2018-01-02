@@ -2,113 +2,426 @@ var jsonObj = {};
 //jsonObj["current"] = "search";
 //jsonObj["description"] = "google search";
 var sites = [];
-var queryString;
+var queryString = "";
 var hrefAdded = [];
-//google
-$("div#rso > div._NId:first").find("div.g").find("div.rc").find("h3 > a").each(function (index) {
-    console.log("Title: " + this.text);
-    console.log($(this));
-    //$(this).append("<br><span style='color: orange'>My new line text</span>");
-    console.log('me done');
-    var obj = {};
 
-    obj[this.text] = $(this).attr('href');
-    sites.push(obj);
-    hrefAdded.push($(this).attr('href'));
+function refreshObj() {
+    chrome.storage.local.get('googleSearch', function(searchResult){
+        console.log("result orig-" + JSON.stringify(searchResult));
+        if (searchResult.googleSearch) {
+            jsonObj = searchResult.googleSearch;
+        }
+
+        if (location.origin.indexOf('cnn') > -1) {
+            queryString = "";
+            //cnn
+            var urlBase = location.origin;
+            console.log(urlBase);
+            $("div.cd__content").find("h3 > a").each(function (index) {
+                console.log("Title: " + this.text);
+                console.log($(this));
+                //$(this).append("<br><span style='color: orange'>My new line text</span>");
+                console.log('me done');
+                var obj = {};
+                //var urlBase = location.origin;
+                //console.log(urlBase);
+                if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+                    console.log("not in hrefadded array");
+                    // var partialUrl = $(this).attr('href');
+                    //var fullUrl = urlBase + partialUrl;
+                    //console.log(fullUrl);
+                    obj[this.text] = location.origin + $(this).attr('href');
+                    sites.push(obj);
+                }
+
+            });
+            jsonObj['cnn'] = sites;
+            /*console.log("Final object...\n" + JSON.stringify(jsonObj));
+            console.log("queryStr--" + queryString);
+            //chrome.storage.local.set({'googleSearch': "", 'queryString' : "", 'searchEngine' : ""}, function() {});
+            chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+                console.log('Settings saved');
+            });*/
+        } else if (location.origin.indexOf('google') > -1) {
+            //refreshObj();
+            queryString = document.getElementsByName("q")[0].value;
+
+            //google
+            $("div#rso > div._NId:first").find("div.g").find("div.rc").find("h3 > a").each(function (index) {
+                console.log("Title: " + this.text);
+                console.log($(this));
+                //$(this).append("<br><span style='color: orange'>My new line text</span>");
+                console.log('me done');
+                var obj = {};
+
+                obj[this.text] = $(this).attr('href');
+                sites.push(obj);
+                hrefAdded.push($(this).attr('href'));
 
 
-});
+            });
 
-$("div#rso").find("div > g-section-with-header").find("h3").find("a").each(function (index) {
-    console.log("Title: " + this.text);
-    console.log($(this));
-    //$(this).append("<br><span style='color: orange'>My new line text</span>");
-    console.log('me done');
-    var obj = {};
-    if (hrefAdded.indexOf($(this).attr('href')) === -1) {
-        obj[this.text] = $(this).attr('href');
-        sites.push(obj);
-    }
+            $("div#rso").find("div > g-section-with-header").find("h3").find("a").each(function (index) {
+                console.log("Title: " + this.text);
+                console.log($(this));
+                //$(this).append("<br><span style='color: orange'>My new line text</span>");
+                console.log('me done');
+                var obj = {};
+                if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+                    obj[this.text] = $(this).attr('href');
+                    sites.push(obj);
+                }
 
 
-});
+            });
 
-$("div.srg").find("h3 > a").each(function (index) {
-    console.log("Title: " + this.text);
-    console.log($(this));
-    //$(this).append("<br><span style='color: orange'>My new line text</span>");
-    console.log('me done');
-    var obj = {};
-    if (hrefAdded.indexOf($(this).attr('href')) === -1) {
-        obj[this.text] = $(this).attr('href');
-        sites.push(obj);
-    }
+            $("div.srg").find("h3 > a").each(function (index) {
+                console.log("Title: " + this.text);
+                console.log($(this));
+                //$(this).append("<br><span style='color: orange'>My new line text</span>");
+                console.log('me done');
+                var obj = {};
+                if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+                    obj[this.text] = $(this).attr('href');
+                    sites.push(obj);
+                }
 
-});
-//bing //ol.b_results
-$("ol#b_results > li.b_algo").find("h2 > a").each(function () {
-    console.log("Title: " + this.text);
-    var lnk = $(this).attr('href');
-    console.log("from: " + JSON.stringify(lnk));
-    var obj = {};
-    obj[this.text] = $(this).attr('href');
-    sites.push(obj);
-});
-//yahoo
-$("div#web").find("h3 > a").each(function () {
-    console.log("Title: " + this.text);
-    var lnk = $(this).attr('href');
-    console.log("from: " + JSON.stringify(lnk));
-    var obj = {};
-    obj[this.text] = $(this).attr('href');
-    sites.push(obj);
-});
+            });
+            console.log("Orig object...\n" + JSON.stringify(jsonObj));
+            jsonObj['google'] = sites;
+            console.log("Final object...\n" + JSON.stringify(jsonObj));
+            /*console.log("Final object...\n" + JSON.stringify(jsonObj));
+            console.log("queryStr--" + queryString);
+            chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+                console.log('Settings saved');
+            });*/
+            sites = [];
+        } else if (location.origin.indexOf('bing') > -1){
+            //refreshObj();
+            queryString = document.getElementsByName("q")[0].value;
+            //bing //ol.b_results
 
-//youtube //find("ytd-video-renderer")
-$("div#contents").find("h3 > a").each(function (index) {
-    console.log("Title: " + this.text);
-    console.log($(this));
-    //$(this).append("<br><span style='color: orange'>My new line text</span>");
-    console.log('me done');
-    var obj = {};
-    if (hrefAdded.indexOf($(this).attr('href')) === -1) {
-        obj[this.text] = location.origin + $(this).attr('href');
-        sites.push(obj);
-    }
+            $("ol#b_results > li.b_algo").find("h2 > a").each(function () {
+                console.log("Title: " + this.text);
+                var lnk = $(this).attr('href');
+                console.log("from: " + JSON.stringify(lnk));
+                var obj = {};
+                obj[this.text] = $(this).attr('href');
+                sites.push(obj);
+            });
+            jsonObj['bing'] = sites;
+            /*console.log("Final object...\n" + JSON.stringify(jsonObj));
+            console.log("queryStr--" + queryString);
+            chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+                console.log('Settings saved');
+            });*/
 
-    //div#title-wrapper
-});
+        } else if (location.origin.indexOf('yahoo') > -1) {
 
-//cnn
-var urlBase = location.origin;
-console.log(urlBase);
-$("div.cd__content").find("h3 > a").each(function (index) {
-    console.log("Title: " + this.text);
-    console.log($(this));
-    //$(this).append("<br><span style='color: orange'>My new line text</span>");
-    console.log('me done');
-    var obj = {};
-    //var urlBase = location.origin;
-    //console.log(urlBase);
-    if (hrefAdded.indexOf($(this).attr('href')) === -1) {
-        console.log("not in hrefadded array");
-        // var partialUrl = $(this).attr('href');
-        //var fullUrl = urlBase + partialUrl;
-        //console.log(fullUrl);
-        obj[this.text] = location.origin + $(this).attr('href');
-        sites.push(obj);
-    }
+            queryString = document.getElementsByName("p")[0].value;
+            //yahoo
+            $("div#web").find("h3 > a").each(function () {
+                console.log("Title: " + this.text);
+                var lnk = $(this).attr('href');
+                console.log("from: " + JSON.stringify(lnk));
+                var obj = {};
+                obj[this.text] = $(this).attr('href');
+                sites.push(obj);
+            });
+            jsonObj['yahoo'] = sites;
+            /*console.log("Final object...\n" + JSON.stringify(jsonObj));
+            console.log("queryStr--" + queryString);
+            chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+                console.log('Settings saved');
+            });*/
+        } else if (location.origin.indexOf('youtube') > -1) {
 
-});
+            queryString = document.getElementsByName("search_query")[0].value;
+            //youtube //find("ytd-video-renderer")
+            $("div#contents").find("h3 > a").each(function (index) {
+                console.log("Title: " + this.text);
+                console.log($(this));
+                //$(this).append("<br><span style='color: orange'>My new line text</span>");
+                console.log('me done');
+                var obj = {};
+                if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+                    obj[this.text] = location.origin + $(this).attr('href');
+                    sites.push(obj);
+                }
 
-jsonObj['sites'] = sites;
-if (location.origin.indexOf('yahoo') > -1) {
-    queryString = document.getElementsByName("p")[0].value;
-} else if (location.origin.indexOf('youtube') > -1) {
-    queryString = document.getElementsByName("search_query")[0].value;
-} else {
-    queryString = document.getElementsByName("q")[0].value;
+                //div#title-wrapper
+            });
+            console.log("Orig object...\n" + JSON.stringify(jsonObj));
+            jsonObj['youtube'] = sites;
+            console.log("Final object...\n" + JSON.stringify(jsonObj));
+            /*console.log("Final object...\n" + JSON.stringify(jsonObj));
+            console.log("queryStr--" + queryString);
+            chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+                console.log('Settings saved');
+            });*/
+        } else if (location.origin.indexOf('stackoverflow') > -1) {
+            if (document.getElementsByName("q")) {
+                queryString = document.getElementsByName("q")[0].value;
+            }
+            //stackoverflow
+            var urlBase = location.origin;
+            console.log(urlBase);
+            if (queryString === "") {
+                $("div.summary").find("h3 > a").each(function (index) {
+                    console.log("Title: " + this.text);
+                    console.log($(this));
+                    //$(this).append("<br><span style='color: orange'>My new line text</span>");
+                    console.log('me done');
+                    var obj = {};
+                    //var urlBase = location.origin;
+                    //console.log(urlBase);
+                    if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+                        console.log("not in hrefadded array");
+                        // var partialUrl = $(this).attr('href');
+                        //var fullUrl = urlBase + partialUrl;
+                        //console.log(fullUrl);
+                        obj[this.text] = location.origin + $(this).attr('href');
+                        sites.push(obj);
+                    }
+
+                });
+            } else {
+                $("div.result-link").find("span > a").each(function (index) {
+                    console.log("Title: " + this.text);
+                    console.log($(this));
+                    //$(this).append("<br><span style='color: orange'>My new line text</span>");
+                    console.log('me done');
+                    var obj = {};
+                    //var urlBase = location.origin;
+                    //console.log(urlBase);
+                    if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+                        console.log("not in hrefadded array");
+                        // var partialUrl = $(this).attr('href');
+                        //var fullUrl = urlBase + partialUrl;
+                        //console.log(fullUrl);
+                        obj[this.text] = location.origin + $(this).attr('href');
+                        sites.push(obj);
+                    }
+
+                });
+            }
+
+            jsonObj['stackoverflow'] = sites;
+            /*console.log("Final object...\n" + JSON.stringify(jsonObj));
+            console.log("queryStr--" + queryString);
+            //chrome.storage.local.set({'googleSearch': "", 'queryString' : "", 'searchEngine' : ""}, function() {});
+            chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+                console.log('Settings saved');
+            });*/
+        } else if (location.origin.indexOf('washingtonpost') > -1) {
+
+
+            //washingtonpost
+            $("div.headline").find("a").each(function (index) {
+                console.log("Title: " + this.text);
+                console.log($(this));
+                //$(this).append("<br><span style='color: orange'>My new line text</span>");
+                console.log('me done');
+                var obj = {};
+                if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+                    obj[this.text] =  $(this).attr('href');
+                    sites.push(obj);
+                }
+
+                //div#title-wrapper
+            });
+            console.log("Orig object...\n" + JSON.stringify(jsonObj));
+            jsonObj['washingtonpost'] = sites;
+            console.log("Final object...\n" + JSON.stringify(jsonObj));
+
+        }
+        console.log("Final object...\n" + JSON.stringify(jsonObj));
+        console.log("queryStr--" + queryString);
+        chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+            console.log('Settings saved');
+        });
+        sites = [];
+    });
+
+    //console.log("obj new-" + JSON.stringify(jsonObj));
 }
+
+
+
+
+
+
+window.addEventListener ("load", myMain, false);
+
+function myMain (evt) {
+    //refreshObj();
+
+
+    /*if (location.origin.indexOf('cnn') > -1) {
+        refreshObj();
+        queryString = "";
+        //cnn
+        var urlBase = location.origin;
+        console.log(urlBase);
+        $("div.cd__content").find("h3 > a").each(function (index) {
+          console.log("Title: " + this.text);
+          console.log($(this));
+          //$(this).append("<br><span style='color: orange'>My new line text</span>");
+          console.log('me done');
+          var obj = {};
+          //var urlBase = location.origin;
+          //console.log(urlBase);
+          if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+              console.log("not in hrefadded array");
+             // var partialUrl = $(this).attr('href');
+             //var fullUrl = urlBase + partialUrl;
+              //console.log(fullUrl);
+            obj[this.text] = location.origin + $(this).attr('href');
+            sites.push(obj);
+          }
+
+        });
+        jsonObj['cnn'] = sites;
+        console.log("Final object...\n" + JSON.stringify(jsonObj));
+        console.log("queryStr--" + queryString);
+        //chrome.storage.local.set({'googleSearch': "", 'queryString' : "", 'searchEngine' : ""}, function() {});
+        chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+            console.log('Settings saved');
+        });
+    }*/
+
+
+
+
+
+
+
+    //chrome.runtime.sendMessage({cnnLoading: "complete"});
+    /*chrome.storage.local.set({'cnnLoading': "complete"}, function() {
+        console.log('Cnn loading complete..');
+    });*/
+}
+
+
+
+
+/*
+
+if (location.origin.indexOf('yahoo') > -1) {
+	refreshObj();
+	queryString = document.getElementsByName("p")[0].value;
+	//yahoo
+	$("div#web").find("h3 > a").each(function () {
+		console.log("Title: " + this.text);
+		var lnk = $(this).attr('href');
+	  console.log("from: " + JSON.stringify(lnk));
+		 var obj = {};
+	  obj[this.text] = $(this).attr('href');
+	  sites.push(obj);
+	});
+	jsonObj['yahoo'] = sites;
+	console.log("Final object...\n" + JSON.stringify(jsonObj));
+	console.log("queryStr--" + queryString);
+	chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+		console.log('Settings saved');
+	});
+} else if (location.origin.indexOf('youtube') > -1) {
+	refreshObj();
+	queryString = document.getElementsByName("search_query")[0].value;
+	//youtube //find("ytd-video-renderer")
+	$("div#contents").find("h3 > a").each(function (index) {
+	  console.log("Title: " + this.text);
+	  console.log($(this));
+	  //$(this).append("<br><span style='color: orange'>My new line text</span>");
+	  console.log('me done');
+	  var obj = {};
+	  if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+		obj[this.text] = location.origin + $(this).attr('href');
+		sites.push(obj);
+	  }
+
+		//div#title-wrapper
+	});
+	jsonObj['youtube'] = sites;
+	console.log("Final object...\n" + JSON.stringify(jsonObj));
+	console.log("queryStr--" + queryString);
+	chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+		console.log('Settings saved');
+	});
+} else if (location.origin.indexOf('cnn') > -1) {
+	queryString = "";
+} else if (location.origin.indexOf('google') > -1) {
+	refreshObj();
+	queryString = document.getElementsByName("q")[0].value;
+
+	//google
+	$("div#rso > div._NId:first").find("div.g").find("div.rc").find("h3 > a").each(function (index) {
+	  console.log("Title: " + this.text);
+	  console.log($(this));
+	  //$(this).append("<br><span style='color: orange'>My new line text</span>");
+	  console.log('me done');
+	  var obj = {};
+
+		obj[this.text] = $(this).attr('href');
+		sites.push(obj);
+		hrefAdded.push($(this).attr('href'));
+
+
+	});
+
+	$("div#rso").find("div > g-section-with-header").find("h3").find("a").each(function (index) {
+	  console.log("Title: " + this.text);
+	  console.log($(this));
+	  //$(this).append("<br><span style='color: orange'>My new line text</span>");
+	  console.log('me done');
+	  var obj = {};
+	  if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+		obj[this.text] = $(this).attr('href');
+		sites.push(obj);
+	  }
+
+
+	});
+
+	$("div.srg").find("h3 > a").each(function (index) {
+	  console.log("Title: " + this.text);
+	  console.log($(this));
+	  //$(this).append("<br><span style='color: orange'>My new line text</span>");
+	  console.log('me done');
+	  var obj = {};
+	  if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+		obj[this.text] = $(this).attr('href');
+		sites.push(obj);
+	  }
+
+	});
+	jsonObj['google'] = sites;
+	console.log("Final object...\n" + JSON.stringify(jsonObj));
+	console.log("queryStr--" + queryString);
+	chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+		console.log('Settings saved');
+	});
+} else if (location.origin.indexOf('bing') > -1){
+	refreshObj();
+	queryString = document.getElementsByName("q")[0].value;
+	//bing //ol.b_results
+
+	$("ol#b_results > li.b_algo").find("h2 > a").each(function () {
+		console.log("Title: " + this.text);
+		var lnk = $(this).attr('href');
+	  console.log("from: " + JSON.stringify(lnk));
+		 var obj = {};
+	  obj[this.text] = $(this).attr('href');
+	  sites.push(obj);
+	});
+	jsonObj['bing'] = sites;
+	console.log("Final object...\n" + JSON.stringify(jsonObj));
+	console.log("queryStr--" + queryString);
+	chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+		console.log('Settings saved');
+	});
+
+}*/
 //var queryString = document.getElementsByName("q")[0].value; //"p" for yahoo
 /*console.log("jjjjj" + queryString);
 console.log(location.pathname);
@@ -119,13 +432,14 @@ console.log(location.pathname);
 console.log(location.origin);*/
 //var urlquery = '';
 //urlquery = location.origin + location.pathname + '?q=' + queryString;
-console.log("Final object...\n" + JSON.stringify(jsonObj));
-console.log("queryStr--" + queryString);
-chrome.storage.local.set({'googleSearch': "", 'queryString' : "", 'searchEngine' : ""}, function() {});
-//chrome.storage.sync.StorageArea.remove(['googleSearch', 'queryString', 'searchEngine']);
-chrome.storage.local.set({'googleSearch': sites, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
-    console.log('Settings saved');
-});
+/*if (location.origin.indexOf('cnn') === -1) {
+	jsonObj['cnn'] = sites;
+	console.log("Final object...\n" + JSON.stringify(jsonObj));
+	console.log("queryStr--" + queryString);
+	chrome.storage.local.set({'googleSearch': jsonObj, 'queryString' : queryString, 'searchEngine' : location.origin}, function() {
+		console.log('Settings saved');
+	});
+}*/
 
 var fromGS = {};
 $("div.srg").find("h3 > a").click(function () {
@@ -148,15 +462,21 @@ $('a').each(function(index){
 });
 //console.log("showing..\n" + urlArr);
 
-//chrome.runtime.sendMessage({todo: "show_text"});
+
 
 chrome.runtime.onMessage.addListener(function(req, sender, sendres){
+    if (req.exec) {
+        refreshObj();
+        return;
+    }
+
     console.log("in lsner lll" + location.origin);
     /*if (request.greeting == "hello")*/
     var url = new URL(location.origin);
     var name = url.hostname.split('.')[1];
     //if (req.highlight) {
     //alert(req.selectedItems);
+
     console.log("in lsner" + req.selectedItems);
 
     if (name === 'google') {
@@ -279,5 +599,4 @@ function highlightTextYT(selectedItems, highlight) {
         }
 
     });
-
 }
