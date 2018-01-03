@@ -20,7 +20,7 @@ var loadFrom;
 var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString',  'anonymus']; //'searchEngine',, 'loadFrom'
 //var readPage = ['www.google.co.in', 'www.google.com', 'search.yahoo.com', 'www.bing.com', 'www.youtube.com', 'edition.cnn.com'];
 var readPage = ['google', 'search.yahoo', 'bing', 'youtube', 'cnn', 'stackoverflow', 'washingtonpost'];
-var dualSetting = ['cnn', 'stackoverflow'];
+
 var cnnLoading = "loading";
 
 chrome.storage.sync.get( options, function(items) {
@@ -662,8 +662,17 @@ function searchInSite (queryString) {
     }
     window.close();
 }
-document.addEventListener('beforeunload', function (event) {
+
+
+
+document.addEventListener('onbeforeunload', function (event) {
     console.log("unload..");
+    //localStorage.removeItem(key);
+    //window.localStorage.removeItem("googleSearch");
+    /*window.onbeforeunload = function() {
+
+      return '';
+    };*/
     const allUrls = document.getElementsByName("link");
     var parentNode;
     allUrls.forEach (function (url) {
@@ -801,7 +810,7 @@ function findInArray(array, item) {
     //var found = false;
     for (var x = 0; x < array.length; x ++) {
         console.log(array[x] + " ---" + item);
-        console.log(array[x].indexOf(item));
+        console.log(item.indexOf(array[x]));
 
         if (item.indexOf(array[x]) > -1) {
             //found = true;
@@ -870,7 +879,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log("loadFrom-" + loadFrom);
                 console.log("going to  else part -- " + JSON.stringify(tab));
                 var fromPage = true;
-                if (findInArray(dualSetting, url.hostname)) {
+
+                prefForDom = getPreferences(url.hostname, name);
+                console.log(prefForDom != undefined);
+                console.log(findInArray(readPage, url.hostname));
+                if (prefForDom != undefined && findInArray(readPage, url.hostname)) {
+                    console.log("inside if....");
                     //if (loadFrom === 'config') {
                     fromPage = false;
                     //}
@@ -881,8 +895,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!newtab) {
                     if (fromPage) {
                         console.log("from page" + name);
-                        console.log(findInArray(readPage, url.hostname) + "---" + readPage.indexOf(url.hostname));
-                        if (findInArray(readPage, url.hostname) > -1 || isFromSearch(currentUrl)) {
+                        console.log(findInArray(readPage, url.hostname) + "---" + isFromSearch(currentUrl, name));
+                        if (findInArray(readPage, url.hostname) || isFromSearch(currentUrl, name)) {
                             console.log("inside google");
                             searchEngine = name;
                             //to do run content script from here //move this to top, put every thing inside callbak
@@ -943,7 +957,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (prefForDom === undefined) {
                         prefForDom = getPreferences(url.hostname, name); //jsonData[url.hostname] || jsonData[name];
                         //content.style.width = "200px";
-                        //ocument.getElementById('searchAgain').hidden = "hidden";
+                        //document.getElementById('searchAgain').hidden = "hidden";
                         searchPage = false;
                     }
 
@@ -1605,12 +1619,12 @@ function isParentGoogle(parentUrl) {
     //return google.indexOf(url.hostname) > -1;
 }
 
-function isFromSearch(currentURL) {
+function isFromSearch(currentURL, name) {
     //console.log("Check1 " + JSON.stringify(googleSearch));
     console.log("Check22 " + currentURL);
     var urlFound = false;
-    if (googleSearch) {
-        googleSearch.forEach(function (obj) {
+    if (googleSearch && googleSearch[name]) {
+        googleSearch[name].forEach(function (obj) {
             var value = Object.values(obj);
             console.log("Check3 " + value);
             if (value == currentURL) {
@@ -1693,6 +1707,7 @@ function loadList(prefForDom, content, name) {
     createRadio(content);
     //document.getElementById('addbtn').hidden = "hidden";
     const allUrls = document.getElementsByName("link");
+    console.log(allUrls[0]);
     var parentNode = allUrls[0].parentNode.parentNode.childNodes;
     changeSelection(parentNode);
 
