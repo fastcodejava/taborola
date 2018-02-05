@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>My Preferences Options</title>
-	<style>
-		body: { padding: 10px; }
+    <title>My Preferences Options</title>
+    <style>
+        body: { padding: 10px; }
 		pre {
-			background-color: ghostwhite;
-			border: 1px solid silver;
-			padding: 10px 20px;
-			margin: 20px;
-		}
+		   background-color: ghostwhite;
+		   border: 1px solid silver;
+		   padding: 10px 20px;
+		   margin: 20px; 
+		   }
 		.json-key {
-			color: brown;
-		}
+		   color: brown;
+		   }
 		.json-value {
-			color: navy;
-		}
+		   color: navy;
+		   }
 		.json-string {
-			color: olive;
-		}
+		   color: olive;
+		   }
 
-	</style>
+    </style>
 </head>
 
 <body style="width:1000px;height:500px;">
@@ -30,25 +30,25 @@
 <br/>-->
 <label>
 	JSON Data
+	
+   <textarea rows="20" cols="70" id="jsonData">
 
-	<textarea rows="20" cols="70" id="jsonData">
-
-	</textarea>
-	<br />
+	</textarea> 
+    <br />
 </label>
 <label>
-	<input type="checkbox" id="tabsBackground">
-	Open tabs in Background.
-	<br />
-	<input type="checkbox" id="highlightTabs">
-	Highlight tabs with same base url.
+    <input type="checkbox" id="tabsBackground">
+    Open tabs in Background.
+    <br />
+    <input type="checkbox" id="highlightTabs">
+    Highlight tabs with same base url.
 	<br/>
 	<input type="checkbox" id="selectAll">
-	Select all pages (Only for google/yahoo/bing/youtube search results).
+    Select all pages (Only for google/yahoo/bing/youtube search results).
 	<br/>
 	Page loading time out
 	<input type="text" id="timeOut" value="30" size="5">
-	seconds.
+    seconds.
 	<br/>
 	Tabs to load at a time
 	<input type="text" id="tabToLoad" value="2" size="5">
