@@ -1,4 +1,4 @@
-# mypages
+# taborola
 This is a chrome extensions that will open users favourite pages, that are already configured, 
 based on the web site that is open int he current tab.
 
