@@ -20,7 +20,7 @@ var loadFrom;
 var showTree;
 var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString',  'anonymus']; //'searchEngine',, 'loadFrom'
 //var readPage = ['www.google.co.in', 'www.google.com', 'search.yahoo.com', 'www.bing.com', 'www.youtube.com', 'edition.cnn.com'];
-var readPage = ['google', 'search.yahoo', 'bing', 'youtube', 'cnn', 'stackoverflow', 'washingtonpost'];
+var readPage = ['google', 'search.yahoo', 'bing', 'youtube', 'cnn', 'stackoverflow', 'washingtonpost','craigslist','nytimes'];
 
 
 chrome.storage.sync.get( options, function(items) {
@@ -876,7 +876,7 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log("lod--" + loading);
     console.log("jsondata--" + jsonData);
     var content = document.getElementById('content');
-    //chrome.storage.sync.set({loading: false}, function() {});
+    chrome.storage.sync.set({loading: false}, function() {});
     //chrome.storage.sync.set({parentUrl: ""}, function() {});
     window.addEventListener ("load", popupMain, false);
 
@@ -933,8 +933,9 @@ function popupMain(evt) {
                 if (!newtab) {
                     if (fromPage) {
                         console.log("from page" + name);
-                        console.log(findInArray(readPage, url.hostname) + "---" + isFromSearch(currentUrl, name));
-                        if (findInArray(readPage, url.hostname) || isFromSearch(currentUrl, name)) {
+                        console.log(findInArray(readPage, url.hostname) ); //+ "---" + isFromSearch(currentUrl, name));
+                        var showTree = false;
+                        if (findInArray(readPage, url.hostname)){ // || isFromSearch(currentUrl, name)) {
                             console.log("inside google");
                             searchEngine = name;
                             //to do run content script from here //move this to top, put every thing inside callbak
@@ -960,34 +961,38 @@ function popupMain(evt) {
 
                             }
                             console.log("Check1 " + JSON.stringify(googleSearch));
-                            prefForDom = googleSearch[name]['sites'];
-                            console.log("check2-" + prefForDom + "-");
-                            document.getElementById('addbtn').disabled = true;
-                            document.getElementById('savebtn').disabled = true;
-                            //document.getElementById('searchbtn').hidden = "hidden";
-                            //document.getElementById('searchText').hidden = "hidden";
-                            content.style.width = "600px";
-                            document.getElementById('body').style.width = "603px";
-                            searchPage = true;
-                            if (googleSearch === "") {
-                                console.log("Search list is empty");
+                            if (googleSearch[name]) {
+                                prefForDom = googleSearch[name]['sites'];
+                                showTree = googleSearch[name]['tree']
+                                console.log("check2-" + prefForDom + "-");
+                                document.getElementById('addbtn').disabled = true;
+                                document.getElementById('savebtn').disabled = true;
+                                //document.getElementById('searchbtn').hidden = "hidden";
+                                //document.getElementById('searchText').hidden = "hidden";
+                                content.style.width = "600px";
+                                document.getElementById('body').style.width = "603px";
+                                searchPage = true;
+                                if (googleSearch === "") {
+                                    console.log("Search list is empty");
+                                }
+
+                                var engineName = name; //getDomainName(searchEngine); //new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
+                                var div = document.createElement('div');
+                                div.setAttribute("align", "center");
+                                var engineLogo = document.createElement("IMG");
+                                console.log("get favicon--" + name);
+                                engineLogo.setAttribute("src", 'chrome://favicon/'+ name); //searchEngine);
+                                //engineLogo.setAttribute("src", '/icons/' + engineName + '.ico');
+                                engineLogo.style.cssFloat   = 'middle';
+                                div.appendChild(engineLogo);
+                                //var domain = getDomain(searchEngine);
+                                //var engineName = new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
+
+                                var searchEngineTxt = document.createTextNode(" " + engineName + " results.");
+                                div.appendChild(searchEngineTxt);
+                                content.appendChild(div);
                             }
 
-                            var engineName = name; //getDomainName(searchEngine); //new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
-                            var div = document.createElement('div');
-                            div.setAttribute("align", "center");
-                            var engineLogo = document.createElement("IMG");
-                            console.log("get favicon--" + name);
-                            engineLogo.setAttribute("src", 'chrome://favicon/'+ name); //searchEngine);
-                            //engineLogo.setAttribute("src", '/icons/' + engineName + '.ico');
-                            engineLogo.style.cssFloat   = 'middle';
-                            div.appendChild(engineLogo);
-                            //var domain = getDomain(searchEngine);
-                            //var engineName = new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
-
-                            var searchEngineTxt = document.createTextNode(" " + engineName + " results.");
-                            div.appendChild(searchEngineTxt);
-                            content.appendChild(div);
                         }
                     }
 
@@ -1006,7 +1011,7 @@ function popupMain(evt) {
                     console.log(prefForDom);
                     if(prefForDom){
                         //console.log(typeof allurls);
-                        loadList(prefForDom, content, name);
+                        loadList(prefForDom, content, name, showTree);
                     } else {
                         console.log("domain not set...");
                         noConfigFound(content);
@@ -1028,7 +1033,7 @@ function popupMain(evt) {
             });
 
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', chrome.extension.getURL('utube.json'));
+            xhr.open('GET', chrome.extension.getURL('youtube.json'));
             xhr.responseType = "text";
 
             xhr.onreadystatechange = function() {
@@ -1672,6 +1677,7 @@ function isParentGoogle(parentUrl) {
 function isFromSearch(currentURL, name) {
     //console.log("Check1 " + JSON.stringify(googleSearch));
     console.log("Check22 " + currentURL);
+    console.log("****** " + name);
     var urlFound = false;
     if (googleSearch && googleSearch[name]['sites']) {
         googleSearch[name]['sites'].forEach(function (obj) {
