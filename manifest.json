@@ -47,6 +47,7 @@
         "https://www.nytimes.com/",
         "https://dallas.craigslist.org/",
         "https://www.cnn.com/*",
+        "https://reddit.com/*",
         "https://stackoverflow.com/*",
         "https://www.washingtonpost.com/*"
       ],

@@ -4,7 +4,7 @@
  "browser_action" field in manifest.json contains the "default_popup" key with
  value "popup.html".
  -->
-<html >
+<html>
 <head>
 	<title>Select pages to view</title>
 	<style>
@@ -13,85 +13,35 @@
 			font-size: 100%;
 		}
 
-		#openbtn:first-letter {text-decoration:underline}
-		#addbtn:first-letter {text-decoration:underline}
-		#savebtn:first-letter {text-decoration:underline}
-		.accordion {
-			background-color: #ffffff;
-			color: #444;
-			cursor: pointer;
-			padding: 18px;
-			width: 100%;
-			border: none;
-			text-align: left;
-			outline: none;
-			font-size: 15px;
-			transition: 0.4s;
-		}
-
-		.active, .accordion:hover {
-			background-color: #ccc;
-		}
-
-		.accordion:after {
-			content: '\002B';
-			color: #777;
-			font-weight: bold;
-			float: right;
-			margin-left: 5px;
-		}
-
-		.active:after {
-			content: "\2212";
-		}
-
-		.panel {
-			padding: 0 18px;
-			background-color: white;
-			max-height: 0;
-			overflow: hidden;
-			transition: max-height 0.2s ease-out;
-		}
 	</style>
-	<!--<link rel="stylesheet" href="/css/myStyles.css">-->
 	<script src="./popup.js"></script>
+
 </head>
-<body id="body" style="width:400px;max-height:80%;">
-<div id="progress"><img src="./icons/loading.gif" id="loading"/></div>
-<div id="adStuff" style="height:10%;">
-	<font size="-2">Advertisement</font> <br>
-</div>
-<hr>
-<div id="mainStuff" style="height:90%;">
-	<div id="mainContent" style="border:1px solid black; padding-top: 5px;  padding-bottom: 15px">
-		<label>
-			<input type="checkbox" id="selectall" value="selectall" style="margin-left:25px;"/>
-			All
-		</label>
-		<br>
-		<label>
-			<img src="./icons/Small_A_Z.jpg" id="sortListDir" style="margin-left:25px;height:25px;width:25px;"/>
-		</label>
-		<div id="howmany" style="margin-left:25px;"></div>
+<body style="width:300px;">
+<form >
+	<div id="mainStuff" style="height:200px;">
+		<input type="checkbox" id="selectall" value="selectall" style="margin-left:25px;">All</input>
 		<div id="content" style="width:200px;align:left"></div>
 		<div id="sametab" hidden><input type="checkbox"  id="sametabChkbx" value="sametab" style="margin-left:25px;"><font size="2" >Open in Same Tab</font></input></div>
-		<textarea id="anonymus" hidden="hidden" style="margin-left:25px;height:120px;width:360px ;"></textarea><br>
-		<button id="openbtn" style="margin-left:25px ;" accesskey="o">Open</button>
-		<!--<input type="button" id="openbtn" value="Open" style="margin-left:25px ;" accesskey="o"/>-->
+		<input type="button" id="openbtn" value="Open" style="margin-left:25px ;" accesskey="o"/>
 		<input type="button" id="cancelbtn" value="Cancel" accesskey="x"/>
-		<button id="addbtn" accesskey="a">Add</button>
-		<!--<input type="button" id="addbtn" value="Add"  accesskey="a"/>--> <!--hidden = "hidden"-->
-		<button id="savebtn" accesskey="s">Save</button>
-		<!--<input type="button" id="savebtn" value="Save"  accesskey="s"/>-->
-		<!--<a href="#" class="myButton">Open</a>-->
+		<input type="button" id="addbtn" value="Add" style="margin-left:25px ;" accesskey="a"/> <!--hidden = "hidden"-->
+
 		<div id="status"></div>
-		<div id="error"></div>
 	</div>
-	<br>
-	<div id="searchContent" style="border:1px solid black; padding-top: 5px;  padding-bottom: 15px"></div>
-</div>
-
-
+	<div id="adStuff" style="height:50px;">
+		<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+		<!-- Google -->
+		<ins class="adsbygoogle"
+			 style="display:block"
+			 data-ad-client="ca-pub-5319089954294796"
+			 data-ad-slot="6208539460"
+			 data-ad-format="auto"></ins>
+		<script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+		</script>
+	</div>
+</form>
 
 
 </body>

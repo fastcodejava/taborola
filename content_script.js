@@ -251,7 +251,14 @@ function refreshObj() {
             newObj["current"] = location.origin;
             newObj["tree"] = false; //set true for tree structure
             newObj["sites"] = sites; //groupedObj; //[newEntryObj]; for tree structure, uncomment the  block from line 212 and set groupedObj (instead of sites) in this line
-            jsonObj['stackoverflow'] = newObj;
+            //jsonObj['stackoverflow'] = newObj;
+            console.log(jsonObj['stackoverflow']);
+            if (jsonObj['stackoverflow'] ) {
+                jsonObj['stackoverflow']['sites'] = sites; //groupedObj;
+            } else {
+                jsonObj['stackoverflow'] = newObj;
+            }
+            console.log(jsonObj['stackoverflow']['sites']);
             /*console.log("Final object...\n" + JSON.stringify(jsonObj));
             console.log("queryStr--" + queryString);
             //chrome.storage.local.set({'googleSearch': "", 'queryString' : "", 'searchEngine' : ""}, function() {});
@@ -344,6 +351,111 @@ function refreshObj() {
             jsonObj['nytimes'] = newObj;
             console.log("Final object...\n" + JSON.stringify(jsonObj));
 
+        } else if (location.origin.indexOf('reddit') > -1) {
+            var groupedObj = {};
+            console.log(location.origin);
+            //.reddit
+            $("div.scrollerItem").find("a").each(function (index) {
+                console.log ("********" + this.parentNode.getAttribute('class'));
+                console.log("Title: " + this.text);
+                console.log($(this));
+                //$(this).append("<br><span style='color: orange'>My new line text</span>");
+                console.log('me done');
+                var obj = {};
+                if (hrefAdded.indexOf($(this).attr('href')) === -1) {
+                    if ($(this).attr('data-click-id') === 'body') {
+                        //if( this.text !== '') {
+
+                        obj[this.text] =  $(this).attr('href');
+                        //sites.push(obj);
+                        //}
+                    }
+                    hrefAdded.push($(this).attr('href'));
+
+                    $(this).parent().parent().prev().find("a").each (function (){
+                        if ($(this).attr('data-click-id') === 'subreddit') {
+                            //if( this.text !== '') {
+                            //console.log(this.text);
+                            var subItems = groupedObj[this.text];
+                            if (subItems && subItems.length > 0) {
+                                subItems.push(obj);
+                            } else {
+                                subItems = [];
+                                subItems.push(obj);
+                            }
+                            groupedObj[this.text] = subItems;
+                            //}
+                        }
+                    });
+
+                }
+
+                //div#title-wrapper
+            });
+
+            $("div.thing").find("a.title").each(function (index) {
+                console.log ("********" + this.parentNode.getAttribute('class'));
+                console.log("Title: " + this.text);
+                console.log($(this));
+                //$(this).append("<br><span style='color: orange'>My new line text</span>");
+                console.log('me done' + $(this).attr('data-outbound-url'));
+                var obj = {};
+                var href;
+                if ($(this).attr('data-outbound-url')) {
+                    href = $(this).attr('data-outbound-url');
+                } else if ($(this).attr('data-inbound-url')) {
+                    href = location.origin + $(this).attr('data-inbound-url');
+                }
+
+                if (hrefAdded.indexOf(href) === -1) {
+                    console.log("hereeerrrrrr..........");
+                    //if ($(this).attr('data-click-id') === 'body') {
+                    //if( this.text !== '') {
+
+                    obj[this.text] =  href;
+                    //sites.push(obj);
+                    //}
+                    //}
+                    hrefAdded.push(href);
+                    //console.log($(this).parent().parent());
+
+                    $(this).parent().parent().find("a.subreddit").each (function (){
+                        console.log("in subreddit");
+                        //if ($(this).getAttribute('class').indexOf('subreddit') > -1) {
+                        //if( this.text !== '') {
+                        console.log(this.text);
+                        var subItems = groupedObj[this.text];
+                        if (subItems && subItems.length > 0) {
+                            subItems.push(obj);
+                        } else {
+                            subItems = [];
+                            subItems.push(obj);
+                        }
+                        groupedObj[this.text] = subItems;
+                        //}
+                        //}
+                    });
+
+                }
+
+                //div#title-wrapper
+            });
+
+            console.log("Orig object...\n" + JSON.stringify(jsonObj));
+            var newObj = {};
+            newObj["current"] = location.origin;
+            newObj["tree"] = true; //false;
+            newObj["sites"] = groupedObj; //sites;
+            //console.log(newObj);
+            console.log(jsonObj['reddit']);
+            if (jsonObj['reddit'] ) {
+                jsonObj['reddit']['sites'] = groupedObj;
+            } else {
+                jsonObj['reddit'] = newObj;
+            }
+            console.log(jsonObj['reddit']['sites']);
+            //console.log("Final object...\n" + JSON.stringify(jsonObj));
+
         }
         console.log("Final object...\n" + JSON.stringify(jsonObj));
         console.log("queryStr--" + queryString);
@@ -351,12 +463,154 @@ function refreshObj() {
             console.log('Settings saved');
         });
         sites = [];
+        groupedObj = {};
+        hrefAdded = [];
     });
 
     //console.log("obj new-" + JSON.stringify(jsonObj));
 }
 
 
+
+chrome.runtime.onMessage.addListener(function(req, sender, sendres){
+    console.log("in mesg listnr");
+    if (req.exec) {
+        console.log("exec tru");
+        refreshObj();
+        return;
+    }
+
+    //console.log("in lsner lll" + location.origin);
+    /*if (request.greeting == "hello")*/
+    var url = new URL(location.origin);
+    var name = url.hostname.split('.')[1];
+    //if (req.highlight) {
+    //alert(req.selectedItems);
+
+    //console.log("in lsner" + req.selectedItems);
+
+    if (name === 'google') {
+        highlightTextG(req.selectedItems, req.highlight);
+    } else if (name === 'yahoo') {
+        highlightTextY(req.selectedItems, req.highlight);
+    } else if (name === 'bing') {
+        highlightTextB(req.selectedItems, req.highlight);
+    } else if (name === 'youtube') {
+        highlightTextYT(req.selectedItems, req.highlight);
+    }
+
+});
+
+function highlightTextG(selectedItems, highlight) {
+
+    //console.log("in highlight");
+    //$("div.srg").find("h3 > a").each(function (index) {
+    $("div#rso > div._NId:first").find("div.g").find("div.rc").find("h3 > a").each(function (index) {
+        //console.log("in first search.." + selectedItems);
+        //console.log("in first search.." + $(this).attr('href'));
+        if(selectedItems === $(this).attr('href')) {
+            if (highlight) {
+                //console.log("going to highlight,,,");
+                $(this.parentNode.nextSibling).css("background-color","#E2DDDD");
+            } else {
+                //console.log("going to de highlight,,,");
+                $(this.parentNode.nextSibling).css("background-color","");
+            }
+
+            //console.log($(this));
+            //console.log($(this.parentNode.nextSibling));
+        }
+    });
+
+    $("div#rso").find("div > g-section-with-header").find("h3").find("a").each(function (index) {
+        //console.log("in 2nd search..");
+        if(selectedItems === $(this).attr('href')) {
+            if (highlight) {
+                $("div#rso").find("div > g-section-with-header").css("background-color","#E2DDDD");
+
+                //$(this.parentNode.nextSibling).css("background-color","#E2DDDD");
+            } else {
+                $("div#rso").find("div > g-section-with-header").css("background-color","");
+            }
+
+            //console.log($(this));
+            //console.log($("div#rso").find("div > g-section-with-header > g-scrolling-carousel"));
+        }
+
+    });
+    $("div.srg").find("h3 > a").each(function (index) {
+        //console.log("in 3rd search..");
+        if(selectedItems === $(this).attr('href')) {
+            if (highlight) {
+                $(this.parentNode.nextSibling).css("background-color","#E2DDDD");
+            } else {
+                $(this.parentNode.nextSibling).css("background-color","");
+            }
+
+            //console.log($(this));
+            //console.log($(this.parentNode.nextSibling));
+        }
+    });
+}
+
+
+function highlightTextY(selectedItems, highlight) {
+
+    //console.log("in highlight");
+    $("div#web").find("h3 > a").each(function () {
+        if(selectedItems === $(this).attr('href')) {
+            if (highlight) {
+                $(this.parentNode.parentNode.nextSibling.nextSibling).css("background-color","#E2DDDD");
+            } else {
+                $(this.parentNode.parentNode.nextSibling.nextSibling).css("background-color","");
+            }
+            //console.log($(this));
+            //console.log($(this.parentNode.parentNode.nextSibling.nextSibling));
+        }
+
+    });
+
+}
+
+function highlightTextB(selectedItems, highlight) {
+
+    //console.log("in highlight");
+    $("ol#b_results > li.b_algo").find("h2 > a").each(function () {
+        if(selectedItems === $(this).attr('href')) {
+            //console.log($(this));
+            //console.log($(this.parentNode.nextSibling));
+            if (highlight) {
+                $(this.parentNode.parentNode).find("div.b_caption").css("background-color","#E2DDDD");
+            } else {
+                $(this.parentNode.parentNode).find("div.b_caption").css("background-color","");
+            }
+
+        }
+
+    });
+
+}
+
+function highlightTextYT(selectedItems, highlight) {
+
+    //console.log("in highlight" + selectedItems);
+    $("div#contents").find("ytd-video-renderer").find("h3 > a").each(function (index) {
+        //console.log($(this).attr('href'));
+        if(selectedItems.indexOf($(this).attr('href')) > -1) {
+            //console.log($(this));
+            //console.log($(this.parentNode.nextSibling));
+            //console.log($(this.parentNode.parentNode));
+            if (highlight) {
+                $(this.parentNode.parentNode).css("background-color","#E2DDDD");
+            } else {
+                $(this.parentNode.parentNode).css("background-color","");
+            }
+
+        }
+
+    });
+
+}
 
 
 
@@ -551,6 +805,9 @@ console.log(location.origin);*/
 	});
 }*/
 
+
+
+
 var fromGS = {};
 $("div.srg").find("h3 > a").click(function () {
     fromGS = $(this).attr('href');
@@ -571,145 +828,3 @@ $('a').each(function(index){
     //console.log( $(this));
 });
 //console.log("showing..\n" + urlArr);
-
-
-
-chrome.runtime.onMessage.addListener(function(req, sender, sendres){
-    console.log("in mesg listnr");
-    if (req.exec) {
-        console.log("exec tru");
-        refreshObj();
-        return;
-    }
-
-    //console.log("in lsner lll" + location.origin);
-    /*if (request.greeting == "hello")*/
-    var url = new URL(location.origin);
-    var name = url.hostname.split('.')[1];
-    //if (req.highlight) {
-    //alert(req.selectedItems);
-
-    //console.log("in lsner" + req.selectedItems);
-
-    if (name === 'google') {
-        highlightTextG(req.selectedItems, req.highlight);
-    } else if (name === 'yahoo') {
-        highlightTextY(req.selectedItems, req.highlight);
-    } else if (name === 'bing') {
-        highlightTextB(req.selectedItems, req.highlight);
-    } else if (name === 'youtube') {
-        highlightTextYT(req.selectedItems, req.highlight);
-    }
-
-});
-
-function highlightTextG(selectedItems, highlight) {
-
-    //console.log("in highlight");
-    //$("div.srg").find("h3 > a").each(function (index) {
-    $("div#rso > div._NId:first").find("div.g").find("div.rc").find("h3 > a").each(function (index) {
-        //console.log("in first search.." + selectedItems);
-        //console.log("in first search.." + $(this).attr('href'));
-        if(selectedItems === $(this).attr('href')) {
-            if (highlight) {
-                //console.log("going to highlight,,,");
-                $(this.parentNode.nextSibling).css("background-color","#E2DDDD");
-            } else {
-                //console.log("going to de highlight,,,");
-                $(this.parentNode.nextSibling).css("background-color","");
-            }
-
-            //console.log($(this));
-            //console.log($(this.parentNode.nextSibling));
-        }
-    });
-
-    $("div#rso").find("div > g-section-with-header").find("h3").find("a").each(function (index) {
-        //console.log("in 2nd search..");
-        if(selectedItems === $(this).attr('href')) {
-            if (highlight) {
-                $("div#rso").find("div > g-section-with-header").css("background-color","#E2DDDD");
-
-                //$(this.parentNode.nextSibling).css("background-color","#E2DDDD");
-            } else {
-                $("div#rso").find("div > g-section-with-header").css("background-color","");
-            }
-
-            //console.log($(this));
-            //console.log($("div#rso").find("div > g-section-with-header > g-scrolling-carousel"));
-        }
-
-    });
-    $("div.srg").find("h3 > a").each(function (index) {
-        //console.log("in 3rd search..");
-        if(selectedItems === $(this).attr('href')) {
-            if (highlight) {
-                $(this.parentNode.nextSibling).css("background-color","#E2DDDD");
-            } else {
-                $(this.parentNode.nextSibling).css("background-color","");
-            }
-
-            //console.log($(this));
-            //console.log($(this.parentNode.nextSibling));
-        }
-    });
-}
-
-
-function highlightTextY(selectedItems, highlight) {
-
-    //console.log("in highlight");
-    $("div#web").find("h3 > a").each(function () {
-        if(selectedItems === $(this).attr('href')) {
-            if (highlight) {
-                $(this.parentNode.parentNode.nextSibling.nextSibling).css("background-color","#E2DDDD");
-            } else {
-                $(this.parentNode.parentNode.nextSibling.nextSibling).css("background-color","");
-            }
-            //console.log($(this));
-            //console.log($(this.parentNode.parentNode.nextSibling.nextSibling));
-        }
-
-    });
-
-}
-
-function highlightTextB(selectedItems, highlight) {
-
-    //console.log("in highlight");
-    $("ol#b_results > li.b_algo").find("h2 > a").each(function () {
-        if(selectedItems === $(this).attr('href')) {
-            //console.log($(this));
-            //console.log($(this.parentNode.nextSibling));
-            if (highlight) {
-                $(this.parentNode.parentNode).find("div.b_caption").css("background-color","#E2DDDD");
-            } else {
-                $(this.parentNode.parentNode).find("div.b_caption").css("background-color","");
-            }
-
-        }
-
-    });
-
-}
-
-function highlightTextYT(selectedItems, highlight) {
-
-    //console.log("in highlight" + selectedItems);
-    $("div#contents").find("ytd-video-renderer").find("h3 > a").each(function (index) {
-        //console.log($(this).attr('href'));
-        if(selectedItems.indexOf($(this).attr('href')) > -1) {
-            //console.log($(this));
-            //console.log($(this.parentNode.nextSibling));
-            //console.log($(this.parentNode.parentNode));
-            if (highlight) {
-                $(this.parentNode.parentNode).css("background-color","#E2DDDD");
-            } else {
-                $(this.parentNode.parentNode).css("background-color","");
-            }
-
-        }
-
-    });
-
-}
