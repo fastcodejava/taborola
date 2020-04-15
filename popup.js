@@ -15,9 +15,12 @@ var searchSites;
 var searchEngine;
 var baseUrl;
 var anonymus;
-var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString', 'searchEngine', 'anonymus'];
-var google = ['www.google.co.in', 'www.google.com', 'search.yahoo.com', 'www.bing.com', 'www.youtube.com'];
-
+var newtab;
+var loadFrom;
+var showTree;
+var options = ['tabsBackground', 'highlightTabs', 'jsonData', 'selectAll', 'loading', 'googleSearch', 'parentUrl', 'queryString',  'anonymus']; //'searchEngine',, 'loadFrom'
+//var readPage = ['www.google.co.in', 'www.google.com', 'search.yahoo.com', 'www.bing.com', 'www.youtube.com', 'edition.cnn.com'];
+var readPage = ['google', 'search.yahoo', 'bing', 'youtube', 'cnn', 'stackoverflow', 'washingtonpost'];
 
 
 chrome.storage.sync.get( options, function(items) {
@@ -27,12 +30,21 @@ chrome.storage.sync.get( options, function(items) {
     selectAll = items.selectAll;
     loading = items.loading;
     console.log("in sync get" + loading);
-    googleSearch = items.googleSearch;
+    //googleSearch = items.googleSearch;
+    //console.log("in sync get search--" + googleSearch);
     parentUrl = items.parentUrl;
-    queryString = items.queryString;
+    //queryString = items.queryString;
     //searchSites = items.searchSites;
-    searchEngine = items.searchEngine;
+    //searchEngine = items.searchEngine;
     anonymus =  items.anonymus;
+    //loadFrom = items.loadFrom;
+});
+
+chrome.storage.local.get( options, function(items) {
+    googleSearch = items.googleSearch;
+    console.log("in sync get search--" + googleSearch);
+    queryString = items.queryString;
+    // searchEngine = items.searchEngine;
 });
 
 function closeWindow (e) {
@@ -58,49 +70,79 @@ function closeWindow (e) {
 
 function clickHandler(e) {
     //loading = true;
-    const allUrls = document.getElementsByName("link");
+    document.getElementById("openbtn").disabled = true;
+
+    //
     const urlsToOpen = [];
     const tabToHilite = [currentTab.index];
     const openAt = currentTab.index + 1;
-    var anonymus;
+    var anonymusValues;
     try {
-        if (allUrls.length === 0) {
-            console.log("link undefined " + allUrls);
-            anonymus = document.getElementById("anonymus").value;
-            const urls = anonymus.split('\n');
-            urls.forEach(function (url) {
-                if (url.startsWith('http') || url.startsWith('https')) {
-                    urlsToOpen.push(url);
-                } else {
-                    throw new Error("The url " + url + " does not have protocol  " + "..Please specify and try again");
-                    //return ;
-                }
+        if(showTree) {
+            const detNodes = document.getElementsByName("detail");
+            console.log(detNodes);
+            /*this.childNodes[0].childNodes[1]
+var allLi = obj.parentNode.nextSibling.childNodes;
+allLi.forEach(function(li){
+        //console.log(li);
+        if (set) {
+            console.log(li);
+            li.childNodes[0]*/
+            detNodes.forEach(function (detNode){
+                if (detNode.open) {
+                    var allLi = detNode.childNodes[1].childNodes;
+                    allLi.forEach(function(li){
+                        console.log(li.childNodes[1].href);
+                        if (li.childNodes[0].checked) {
+                            urlsToOpen.push(li.childNodes[1].href);
+                        }
 
+                    });
+                }
             });
+
         } else {
-            allUrls.forEach (function (url) {
-                console.log(url);
-                if (url.checked) {
-                    urlsToOpen.push(url.value);
-                    console.log("came till here");
-                    /*chrome.tabs.create({url: url.value, active : !tabsBackground, index: openAt}, function(tab){
-                        tabToHilite.push(tab.index);
-                        openAt ++;
-                    });*/
-                    var itemValue = url.value;
-                    if (searchPage) {
-                        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                            chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
-                                console.log(response.farewell);
-                            });
-                        });
+            const allUrls = document.getElementsByName("link");
+            //console.log(allUrls);
+            if (allUrls.length === 0) {
+                console.log("link undefined " + allUrls);
+                anonymusValues = document.getElementById("anonymus").value;
+                const urls = anonymusValues.split('\n');
+                urls.forEach(function (url) {
+                    if (url.startsWith('http') || url.startsWith('https')) {
+                        urlsToOpen.push(url);
+                    } else {
+                        throw new Error("The url " + url + " does not have protocol  " + "..Please specify and try again");
+                        //return ;
                     }
 
-                } else {
-                    console.log("came till here in else");
-                }
-            });
+                });
+            } else {
+                allUrls.forEach (function (url) {
+                    console.log(url);
+                    if (url.checked) {
+                        urlsToOpen.push(url.value);
+                        console.log("came till here");
+                        /*chrome.tabs.create({url: url.value, active : !tabsBackground, index: openAt}, function(tab){
+                            tabToHilite.push(tab.index);
+                            openAt ++;
+                        });*/
+                        var itemValue = url.value;
+                        if (searchPage) {
+                            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                                chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
+                                    console.log(response.farewell);
+                                });
+                            });
+                        }
+
+                    } else {
+                        console.log("came till here in else");
+                    }
+                });
+            }
         }
+
     } catch (err) {
         document.getElementById("error").innerHTML = err.message;
         return;
@@ -111,29 +153,30 @@ function clickHandler(e) {
     /*if (highlightTabs) {
         chrome.tabs.highlight({tabs: tabToHilite}, function(){});
     }*/
+
     chrome.storage.sync.set({urlsToOpen: [], currTab : "", invokedWindow : "", opnSmeTb : "", loading: false}, function() {});
     var opnSmeTab = document.getElementById("sametabChkbx").checked;
-    chrome.storage.sync.set({urlsToOpen: urlsToOpen, currTab: currentTab, invokedWindow: invokedWindow, opnSmeTb: opnSmeTab, loading: true, anonymus : anonymus}, function() {
+    chrome.storage.sync.set({urlsToOpen: urlsToOpen, currTab: currentTab, invokedWindow: invokedWindow, opnSmeTb: opnSmeTab, loading: true, anonymus : anonymusValues}, function() {
         if (chrome.runtime.error) {
             console.log("Runtime error.");
         }
     });
-    window.close();
+    //window.close();
 }
 
 function selectall () {
     const allUrls = document.getElementsByName("link");
-    var parentNode;
+    var parentNode = allUrls[0].parentNode.parentNode.childNodes;
     if (document.getElementById('selectall').checked) {
         allUrls.forEach (function (url) {
             if (currentUrl !== url.value) {
                 url.checked = true;
                 url.nextSibling.nextSibling.style.fontWeight = "bold";
                 document.getElementById("openbtn").disabled = false;
-                document.getElementById("sametab").hidden = true;
+                document.getElementById("sametab").disabled = true;
                 document.getElementById("sametabChkbx").checked = false;
             }
-            parentNode = url.parentNode.parentNode.childNodes;
+
             console.log("kkkkkk-" + url.value);
             var itemValue = url.value;
             if (searchPage) {
@@ -145,6 +188,8 @@ function selectall () {
             }
 
         });
+
+        /*
         var howmany = document.getElementById("howmany");
         var selNums = howManyChecked(parentNode);
         howmany.textContent = selNums + " selected.";
@@ -160,14 +205,14 @@ function selectall () {
             document.getElementsByName('site')[0].disabled = true;
             document.getElementsByName('site')[1].disabled = true;
             document.getElementsByName('site')[2].disabled = true;
-        }
+        }*/
     } else {
         allUrls.forEach (function (url) {
             url.checked = false;
             console.log(url.parentNode);
             url.nextSibling.nextSibling.style.fontWeight = "normal";
             document.getElementById("openbtn").disabled = true;
-            document.getElementById("sametab").hidden = true;
+            document.getElementById("sametab").disabled = true;
             document.getElementById("sametabChkbx").checked = false;
             var itemValue = url.value;
             if (searchPage) {
@@ -179,7 +224,7 @@ function selectall () {
             }
 
         });
-        var howmany = document.getElementById("howmany");
+        /*var howmany = document.getElementById("howmany");
         howmany.textContent = "0 selected.";
         if (document.getElementById('searchAgain')) {
             document.getElementById('searchAgain').disabled = false;
@@ -191,11 +236,11 @@ function selectall () {
         }
         document.getElementsByName('site')[0].disabled = false;
         document.getElementsByName('site')[1].disabled = false;
-        document.getElementsByName('site')[2].disabled = false;
+        document.getElementsByName('site')[2].disabled = false; */
         //document.getElementById('searchAgain').disabled = false;
     }
 
-
+    changeSelection(parentNode);
 }
 
 function linkClick () {
@@ -230,10 +275,10 @@ function chkBoxClick (ele) {
         });
         if (none) {
             console.log("only one");
-            document.getElementById("sametab").hidden = false;
+            document.getElementById("sametab").disabled = false;
             document.getElementById("sametabChkbx").checked = true;
         } else {
-            document.getElementById("sametab").hidden = true;
+            document.getElementById("sametab").disabled = true;
             document.getElementById("sametabChkbx").checked = false;
         }
 
@@ -261,39 +306,48 @@ function chkBoxClick (ele) {
             document.getElementById('searchbtn').disabled = true;
             document.getElementById('searchTextBox').disabled = true;
         }
-        document.getElementsByName('site')[0].disabled = true;
-        document.getElementsByName('site')[1].disabled = true;
-        document.getElementsByName('site')[2].disabled = true;
+        if (document.getElementsByName('site')[0]) {
+            document.getElementsByName('site')[0].disabled = true;
+            document.getElementsByName('site')[1].disabled = true;
+            document.getElementsByName('site')[2].disabled = true;
+        }
         //document.getElementById('searchAgain').disabled = true;
     } else {
         this.labels[0].style.fontWeight="normal";
         document.getElementById("openbtn").disabled = true;
-        document.getElementById("sametab").hidden = true;
+        document.getElementById("sametab").disabled = true;
         document.getElementById("sametabChkbx").checked = false;
         if (atleastOneChecked(this.parentNode.parentNode.childNodes)) {
             document.getElementById("openbtn").disabled = false;
         }
         if (moreThanOneChecked(this.parentNode.parentNode.childNodes)) {
             console.log("more than one checked");
-            document.getElementById("sametab").hidden = true;
+            document.getElementById("sametab").disabled = true;
             document.getElementById("sametabChkbx").checked = false;
         } else {
-            document.getElementById("sametab").hidden = false;
+            document.getElementById("sametab").disabled = false;
             document.getElementById("sametabChkbx").checked = true;
         }
 
-        var itemValue = this.value;
+        var selItems = this.value;
         if (searchPage) {
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: itemValue}, function(response) {
+                chrome.tabs.sendMessage(tabs[0].id, {highlight:false, selectedItems: selItems}, function(response) {
                     console.log(response.farewell);
                 });
             });
         }
 
     }
+    changeSelection(this.parentNode.parentNode.childNodes);
+    //console.log("len--" + this.parentNode.parentNode.childNodes.length);
+}
+
+function changeSelection (listNodes) {
+
     var howmany = document.getElementById("howmany");
-    var selNums = howManyChecked(this.parentNode.parentNode.childNodes);
+    var selNums = howManyChecked(listNodes);
+    console.log(listNodes.length + "***" + selNums);
     howmany.textContent = selNums + " selected.";
     if (selNums === 0) {
         if (document.getElementById('searchAgain')) {
@@ -304,9 +358,12 @@ function chkBoxClick (ele) {
             document.getElementById('searchbtn').disabled = false;
             document.getElementById('searchTextBox').disabled = false;
         }
-        document.getElementsByName('site')[0].disabled = false;
-        document.getElementsByName('site')[1].disabled = false;
-        document.getElementsByName('site')[2].disabled = false;
+        if (document.getElementsByName('site')[0]) {
+            document.getElementsByName('site')[0].disabled = false;
+            document.getElementsByName('site')[1].disabled = false;
+            document.getElementsByName('site')[2].disabled = false;
+        }
+
         //document.getElementById('searchAgain').disabled = false;
     } else {
         if (document.getElementById('searchAgain')) {
@@ -317,18 +374,20 @@ function chkBoxClick (ele) {
             document.getElementById('searchbtn').disabled = true;
             document.getElementById('searchTextBox').disabled = true;
         }
-        document.getElementsByName('site')[0].disabled = true;
-        document.getElementsByName('site')[1].disabled = true;
-        document.getElementsByName('site')[2].disabled = true;
+        if (document.getElementsByName('site')[0]) {
+            document.getElementsByName('site')[0].disabled = true;
+            document.getElementsByName('site')[1].disabled = true;
+            document.getElementsByName('site')[2].disabled = true;
+        }
         //document.getElementById('searchAgain').disabled = true;
     }
-    if (selNums < this.parentNode.parentNode.childNodes.length) {
+    console.log("selected--" + selNums + "--list len--" + listNodes.length);
+    if (selNums < listNodes.length) {
         document.getElementById('selectall').checked = false;
     }
-    if (selNums === this.parentNode.parentNode.childNodes.length) {
+    if (selNums === listNodes.length) {
         document.getElementById('selectall').checked = true;
     }
-    //console.log("len--" + this.parentNode.parentNode.childNodes.length);
 }
 
 function howManyChecked(liNodes) {
@@ -382,7 +441,22 @@ function addUrl() {
        var name = hostNameArray[1];//domain.split('.')[0];
        //var jsonObj = {};*/
         var name = getDomainName(tab.url);
-
+        let textBox = document.getElementById('anonymus');
+        var newObjArr = [];
+        if (textBox) {
+            console.log(textBox.value);
+            if (textBox.value !== '') {
+                var values = textBox.value.split('\n');
+                values.forEach(function (value){
+                    var obj = {};
+                    var key = getKeyFromURL(value.split('/'));
+                    obj[key] = value;
+                    newObjArr.push(obj);
+                });
+            }
+            //var newURLs = textBox.value ? textBox.value.replace('\n', ',') : '';
+            console.log(newObjArr);
+        }
         chrome.storage.sync.get( "jsonData", function(items) {
             console.log(JSON.stringify(items));
             var origObj = items.jsonData;
@@ -393,26 +467,37 @@ function addUrl() {
             }*/
             //var prefForDom = origObj[fullDomain] || origObj[name];
             var prefForDom = getPreferences(fullDomain, name, origObj);
-            console.log(prefForDom + " --- llllllll");
+            console.log("==" + prefForDom + "--- llllllll");
             var newEntryObj = {};
             var path = url.pathname.split('/');
-            if (path.length === 0) {
-                newEntryObj[name] = currentUrl;
+            var key = getKeyFromURL(path);
+            /*if (path.length === 0) {
+                //newEntryObj[name] = currentUrl;
+                key = name;
             } else {
                 if (path[path.length-1].indexOf('=') === -1) {
-                    newEntryObj[path[path.length-1]] = currentUrl;
+                    //newEntryObj[path[path.length-1]] = currentUrl;
+                    key = path[path.length-1];
                 } else {
-                    newEntryObj[path[1]] = currentUrl;
+                    //newEntryObj[path[1]] = currentUrl;
+                    key  = path[1];
                 }
             }
-
+            if (key === '') {
+                key = 'Home';
+            }*/
+            newEntryObj[key] = currentUrl;
+            console.log(newEntryObj);
+            //if (newObjArr.length > 0) {
+            newObjArr.push(newEntryObj);
+            //}
             //path[path.length];
             //var nameKey = url.pathname.endsWith('/') ? url.pathname[url.pathname.length - 2] : url.pathname[url.pathname.length - 1];
 
             console.log(path.length);
             console.log("dom-" + path + "--" + path[path.length-1]);
-
             if (prefForDom) {
+                console.log('in if');
                 if (Array.isArray(prefForDom)) {
                     prefForDom.push(newEntryObj);
                 } else {
@@ -428,11 +513,12 @@ function addUrl() {
 
 
             } else {
+                console.log('in else');
                 //origObj[name] = [currentUrl];
                 var newObj = {};
                 newObj["current"] = name;
                 newObj["description"] = name;
-                newObj["sites"] = [newEntryObj];
+                newObj["sites"] = newObjArr; //[newEntryObj];
                 origObj[name] = newObj;
             }
             //origObj[name] = [currentUrl];
@@ -453,6 +539,27 @@ function addUrl() {
     });
 }
 
+function getKeyFromURL (path) {
+    //var path = url.pathname.split('/');
+    console.log(path);
+    var key;
+    if (path.length === 0) {
+        //newEntryObj[name] = currentUrl;
+        key = name;
+    } else {
+        if (path[path.length-1].indexOf('=') === -1) {
+            //newEntryObj[path[path.length-1]] = currentUrl;
+            key = path[path.length-1];
+        } else {
+            //newEntryObj[path[1]] = currentUrl;
+            key  = path[1];
+        }
+    }
+    if (key === '') {
+        key = 'Home';
+    }
+    return key;
+}
 
 function searchAgain () {
     var urlSite = '';
@@ -548,7 +655,7 @@ function sortListDir() {
         } else {
             /*If no switching has been done AND the direction is "asc",
             set the direction to "desc" and run the while loop again.*/
-            if (switchcount == 0 && dir == "asc") {
+            if (switchcount === 0 && dir == "asc") {
                 dir = "desc";
                 switching = true;
 
@@ -591,8 +698,17 @@ function searchInSite (queryString) {
     }
     window.close();
 }
-document.addEventListener('beforeunload', function (event) {
+
+
+
+document.addEventListener('onbeforeunload', function (event) {
     console.log("unload..");
+    //localStorage.removeItem(key);
+    //window.localStorage.removeItem("googleSearch");
+    /*window.onbeforeunload = function() {
+
+      return '';
+    };*/
     const allUrls = document.getElementsByName("link");
     var parentNode;
     allUrls.forEach (function (url) {
@@ -709,18 +825,39 @@ function saveSelection() {
                 });
         });
     });
+
+    /*const allUrls = document.getElementsByName("link");
+    var parentNode = allUrls[0].parentNode.parentNode.childNodes;
+    changeSelection(parentNode);*/
 }
 
 function editTextArea () {
     let txtAreaContent = this.value;
     console.log("in txt are" + txtAreaContent);
     if (txtAreaContent === '') {
-        document.getElementById('openbtn').hidden = "hidden";
+        document.getElementById('openbtn').disabled = true;
         document.getElementById("error").innerHTML = "";
     } else {
-        document.getElementById('openbtn').hidden = "";
+        document.getElementById('openbtn').disabled = false;
     }
 }
+
+function findInArray(array, item) {
+    //var found = false;
+    for (var x = 0; x < array.length; x ++) {
+        console.log(array[x] + " ---" + item);
+        console.log(item.indexOf(array[x]));
+
+        if (item.indexOf(array[x]) > -1) {
+            //found = true;
+            //return found;
+
+            return true;
+        }
+    }
+    return false;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     /* var bgPage = chrome.extension.getBackgroundPage();
      console.log("before");
@@ -735,216 +872,360 @@ document.addEventListener('DOMContentLoaded', function () {
     //document.getElementById('searchAgain').addEventListener('click', searchAgain);
     document.getElementById('sortListDir').addEventListener('click', sortListDir);
     //document.getElementById('searchbtn').addEventListener('click', searchInSite);
-    onclick="()"
+    //onclick="()";
     console.log("lod--" + loading);
     console.log("jsondata--" + jsonData);
     var content = document.getElementById('content');
     //chrome.storage.sync.set({loading: false}, function() {});
     //chrome.storage.sync.set({parentUrl: ""}, function() {});
-    getCurrentTabUrl(function(tab) {
-        currentUrl = tab.url;
-        if (currentUrl === "chrome://newtab/") {
-            window.close();
-            return;
-        }
-
-        var url = new URL(tab.url);
-        var fullDomain = url.hostname;
-        console.log("dom-" + fullDomain);
-        var hostNameArray = fullDomain.split(".");
-
-        console.log(hostNameArray.length);
-        //var domain = getDomain(currentUrl);
-        var name = getDomainName(tab.url); //hostNameArray[1]; //domain.split('.')[0];
-        console.log("currentUrl --" + currentUrl);
-        console.log("name --" + name);
-        console.log("lod--" + loading);
-        console.log("jsondata--" + jsonData);
-        if (loading) {
-            window.close();
-            return;
-        }
-        var prefForDom;
-        console.log("test--" + isFromSearch(currentUrl));
-        if (google.indexOf (url.hostname) > -1 || isFromSearch(currentUrl)) {
-            console.log("inside google");
-            if (googleSearch === undefined || Object.keys(googleSearch).length === 0)  {
-                //console.log("google seach list is empty");
-                //window.close();
-                //return;
-                var text = document.createTextNode("No previous search results found. Please try a fresh search.");
-                document.getElementById('openbtn').hidden = "hidden";
-                //document.getElementById('cancelbtn').hidden = "hidden";
-                document.getElementById('selectall').hidden = "hidden";
-                document.getElementById('selectall').nextSibling.nodeValue = "";
-                document.getElementById('sortListDir').hidden = "hidden";
-                console.log(document.getElementById('sortListDir').nextSibling.nodeValue + "fffk");
-
-                document.getElementById('sortListDir').nextSibling.nodeValue = "";
-                //document.getElementById('searchAgain').hidden = "hidden";
-                //document.getElementById('addbtn').hidden = "";
-                content.appendChild(text);
-                return;
-
-            }
-            console.log("Check1 " + JSON.stringify(googleSearch));
-            prefForDom = googleSearch;
-            console.log("check2-" + prefForDom + "-");
-            document.getElementById('addbtn').hidden = "hidden";
-            document.getElementById('savebtn').hidden = "hidden";
-            //document.getElementById('searchbtn').hidden = "hidden";
-            //document.getElementById('searchText').hidden = "hidden";
-            content.style.width = "600px";
-            document.getElementById('body').style.width = "603px";
-            searchPage = true;
-            if (googleSearch === "") {
-                console.log("Search list is empty");
-            }
-            var engineName = getDomainName(searchEngine); //new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
-            var div = document.createElement('div');
-            div.setAttribute("align", "center");
-            var engineLogo = document.createElement("IMG");
-            console.log("get favicon--" + searchEngine);
-            engineLogo.setAttribute("src", 'chrome://favicon/'+ searchEngine);
-            //engineLogo.setAttribute("src", '/icons/' + engineName + '.ico');
-            engineLogo.style.cssFloat   = 'middle';
-            div.appendChild(engineLogo);
-            //var domain = getDomain(searchEngine);
-            //var engineName = new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
-
-            var searchEngineTxt = document.createTextNode(" " + engineName + " results.");
-            div.appendChild(searchEngineTxt);
-            content.appendChild(div);
-        }
-
-        if (prefForDom === undefined) {
-            prefForDom = getPreferences(url.hostname, name); //jsonData[url.hostname] || jsonData[name];
-            //content.style.width = "200px";
-            //ocument.getElementById('searchAgain').hidden = "hidden";
-            searchPage = false;
-        }
+    window.addEventListener ("load", popupMain, false);
 
 
-
-
-        console.log(jsonData);
-        console.log(prefForDom);
-        if(prefForDom){
-            //console.log(typeof allurls);
-            if (Array.isArray(prefForDom)) {
-                console.log("pref dom is an array")
-                if (prefForDom.length > 0) {
-                    content.appendChild(createList(prefForDom));
-                } else {
-                    noConfigFound(content);
-                }
-            } else {
-                content.appendChild(createDropDown(prefForDom, name));
-                var label = document.createElement('label');
-                var txt = document.createTextNode("Options ");
-                label.setAttribute("for", "typeSelect");
-                label.appendChild(txt);
-                label.style.marginLeft = "25px";
-                content.insertBefore(label,document.getElementById("typeSelect"));
-                var type = document.getElementById("typeSelect");
-                //type.style.marginLeft = "25px";
-                var selectedType = type.options[type.selectedIndex].value;
-                content.appendChild(createList(prefForDom[selectedType]));
-            }
-            //document.getElementsByName("link").addEventListener('click', chkBoxClick);
-            if (selectAll) {
-                document.getElementById('selectall').checked = true;
-            }
-            createRadio(content);
-            //document.getElementById('addbtn').hidden = "hidden";
-        } else {
-            console.log("domain not set...");
-            noConfigFound(content);
-            /*var text = document.createTextNode("Domain not set in preference.");
-            document.getElementById('openbtn').hidden = "hidden";
-            document.getElementById('selectall').hidden = "hidden";
-            document.getElementById('selectall').nextSibling.nodeValue = "";
-            document.getElementById('sortListDir').hidden = "hidden";
-            document.getElementById('sortListDir').nextSibling.nodeValue = "";
-            document.getElementById('anonymus').hidden = "";
-            content.appendChild(text);*/
-
-        }
-
-
-
-
-    });
-
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', chrome.extension.getURL('utube.json'));
-    xhr.responseType = "text";
-
-    xhr.onreadystatechange = function() {
-        console.log("here");
-        if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-            //console.log(xhr.responseText);
-            //utubeData = xhr.responseText;
-            utubeData = JSON.parse(xhr.responseText);
-            console.log(utubeData);
-            if (utubeData !== undefined) {
-                var adStuff = document.getElementById('adStuff');
-                //var utubeData = chrome.runtime.getURL("utube.json");
-                console.log(utubeData);
-                var keys = Object.keys(utubeData);
-                var ranNum = randomIntFromInterval(0, 9);
-                console.log("Me random" + ranNum);
-                var utube = document.createElement('a');
-                utube.textContent = keys[ranNum];
-                utube.href = utubeData[keys[ranNum]];
-                utube.onclick = utubeClick;
-                adStuff.appendChild(utube);
-                adStuff.appendChild(document.createElement('br'));
-                /*keys.forEach(function (key) {
-                    //console.log(data);
-                    var utube = document.createElement('a');
-                    utube.textContent = key;
-                    utube.href = utubeData[key];
-                    utube.onclick = utubeClick;
-                    adStuff.appendChild(utube);
-                    adStuff.appendChild(document.createElement('br'));
-                });*/
-
-            }
-        }
-    };
-    xhr.send();
-    //
-
-    //console.log("margin" + document.getElementById("selectall").style.margin);
-    /*var delayMillis = 10000; //1 second
-
-    setTimeout(function() {
-      //your code to be executed after 1 second
-
-    }, delayMillis);*/
-    document.getElementById('mainStuff').hidden = false;
-    document.getElementById('progress').hidden = true;
 });
 
-function noConfigFound(content) {
+function popupMain(evt) {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, {exec:true}, function(response) {
+            getCurrentTabUrl(function(tab) {
+                currentUrl = tab.url;
+                if (currentUrl === "chrome://newtab/") {
+                    //window.close();
+                    //return;
+                    newtab = true;
+                } else {
+                    newtab = false;
+                }
+
+                var url = new URL(tab.url);
+                var fullDomain = url.hostname;
+                console.log("dom-" + fullDomain);
+                var hostNameArray = fullDomain.split(".");
+
+                console.log(hostNameArray.length);
+                //var domain = getDomain(currentUrl);
+                var name = getDomainName(tab.url); //hostNameArray[1]; //domain.split('.')[0];
+                console.log("currentUrl --" + currentUrl);
+                console.log("name --" + name);
+                console.log("lod--" + loading);
+                console.log("jsondata--" + jsonData);
+                if (loading) {
+                    window.close();
+                    return;
+                }
+                var prefForDom;
+                //console.log("test--" + isFromSearch(currentUrl));
+                console.log("loadFrom-" + loadFrom);
+                console.log("going to  else part -- " + JSON.stringify(tab));
+                var fromPage = true;
+
+                prefForDom = getPreferences(url.hostname, name);
+                console.log(prefForDom != undefined);
+                console.log(findInArray(readPage, url.hostname));
+                if (prefForDom != undefined && findInArray(readPage, url.hostname)) {
+                    console.log("inside if....");
+                    //if (loadFrom === 'config') {
+                    fromPage = false;
+                    //}
+                    createLoadOptions(content, "config");
+
+                }
+
+                if (!newtab) {
+                    if (fromPage) {
+                        console.log("from page" + name);
+                        console.log(findInArray(readPage, url.hostname) + "---" + isFromSearch(currentUrl, name));
+                        if (findInArray(readPage, url.hostname) || isFromSearch(currentUrl, name)) {
+                            console.log("inside google");
+                            searchEngine = name;
+                            //to do run content script from here //move this to top, put every thing inside callbak
+
+
+                            if (googleSearch === undefined || Object.keys(googleSearch).length === 0){ // || searchEngine.indexOf(url.hostname) === -1
+                                //console.log("google seach list is empty");
+                                //window.close();
+                                //return;
+                                var text = document.createTextNode("No previous search results found. Please try a fresh search.");
+                                document.getElementById('openbtn').disabled = true;
+                                //document.getElementById('cancelbtn').hidden = "hidden";
+                                document.getElementById('selectall').disabled = true;
+                                document.getElementById('selectall').nextSibling.nodeValue = "";
+                                document.getElementById('sortListDir').disabled = true;
+                                console.log(document.getElementById('sortListDir').nextSibling.nodeValue + "fffk");
+
+                                //document.getElementById('sortListDir').nextSibling.nodeValue = "";
+                                //document.getElementById('searchAgain').hidden = "hidden";
+                                //document.getElementById('addbtn').hidden = "";
+                                content.appendChild(text);
+                                return;
+
+                            }
+                            console.log("Check1 " + JSON.stringify(googleSearch));
+                            prefForDom = googleSearch[name]['sites'];
+                            console.log("check2-" + prefForDom + "-");
+                            document.getElementById('addbtn').disabled = true;
+                            document.getElementById('savebtn').disabled = true;
+                            //document.getElementById('searchbtn').hidden = "hidden";
+                            //document.getElementById('searchText').hidden = "hidden";
+                            content.style.width = "600px";
+                            document.getElementById('body').style.width = "603px";
+                            searchPage = true;
+                            if (googleSearch === "") {
+                                console.log("Search list is empty");
+                            }
+
+                            var engineName = name; //getDomainName(searchEngine); //new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
+                            var div = document.createElement('div');
+                            div.setAttribute("align", "center");
+                            var engineLogo = document.createElement("IMG");
+                            console.log("get favicon--" + name);
+                            engineLogo.setAttribute("src", 'chrome://favicon/'+ name); //searchEngine);
+                            //engineLogo.setAttribute("src", '/icons/' + engineName + '.ico');
+                            engineLogo.style.cssFloat   = 'middle';
+                            div.appendChild(engineLogo);
+                            //var domain = getDomain(searchEngine);
+                            //var engineName = new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
+
+                            var searchEngineTxt = document.createTextNode(" " + engineName + " results.");
+                            div.appendChild(searchEngineTxt);
+                            content.appendChild(div);
+                        }
+                    }
+
+
+                    if (prefForDom === undefined) {
+                        prefForDom = getPreferences(url.hostname, name); //jsonData[url.hostname] || jsonData[name];
+                        //content.style.width = "200px";
+                        //document.getElementById('searchAgain').hidden = "hidden";
+                        searchPage = false;
+                    }
+
+
+
+
+                    console.log(jsonData);
+                    console.log(prefForDom);
+                    if(prefForDom){
+                        //console.log(typeof allurls);
+                        loadList(prefForDom, content, name);
+                    } else {
+                        console.log("domain not set...");
+                        noConfigFound(content);
+                        /*var text = document.createTextNode("Domain not set in preference.");
+                        document.getElementById('openbtn').hidden = "hidden";
+                        document.getElementById('selectall').hidden = "hidden";
+                        document.getElementById('selectall').nextSibling.nodeValue = "";
+                        document.getElementById('sortListDir').hidden = "hidden";
+                        document.getElementById('sortListDir').nextSibling.nodeValue = "";
+                        document.getElementById('anonymus').hidden = "";
+                        content.appendChild(text);*/
+
+                    }
+
+                } else {
+                    var mesg = "Bank Page.";
+                    noConfigFound(content, mesg);
+                }
+            });
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', chrome.extension.getURL('utube.json'));
+            xhr.responseType = "text";
+
+            xhr.onreadystatechange = function() {
+                console.log("here");
+                if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    //console.log(xhr.responseText);
+                    //utubeData = xhr.responseText;
+                    utubeData = JSON.parse(xhr.responseText);
+                    console.log(utubeData);
+                    if (utubeData !== undefined) {
+                        var adStuff = document.getElementById('adStuff');
+                        //var utubeData = chrome.runtime.getURL("utube.json");
+                        console.log(utubeData);
+                        var keys = Object.keys(utubeData);
+                        var ranNum = randomIntFromInterval(0, 9);
+                        console.log("Me random" + ranNum);
+                        var utube = document.createElement('a');
+                        utube.textContent = keys[ranNum];
+                        utube.href = utubeData[keys[ranNum]];
+                        utube.onclick = utubeClick;
+                        adStuff.appendChild(utube);
+                        adStuff.appendChild(document.createElement('br'));
+                        /*keys.forEach(function (key) {
+                            //console.log(data);
+                            var utube = document.createElement('a');
+                            utube.textContent = key;
+                            utube.href = utubeData[key];
+                            utube.onclick = utubeClick;
+                            adStuff.appendChild(utube);
+                            adStuff.appendChild(document.createElement('br'));
+                        });*/
+
+                    }
+                }
+            };
+            xhr.send();
+            //
+
+            //console.log("margin" + document.getElementById("selectall").style.margin);
+            /*var delayMillis = 10000; //1 second
+
+            setTimeout(function() {
+              //your code to be executed after 1 second
+
+            }, delayMillis);*/
+            document.getElementById('mainStuff').hidden = false;
+            document.getElementById('progress').hidden = true;
+            console.log(response.farewell);
+        });
+    });
+
+}
+
+function createLoadOptions(content, sele) {
+    var loadDiv = document.createElement("div");
+    loadDiv.style.width = '300px';
+    var label = document.createElement("label");
+    label.innerHTML = "Load from ";
+    label.style.marginLeft = "25px";
+    loadDiv.appendChild(label);
+
+    var radio = document.createElement("INPUT");
+    radio.setAttribute("type", "radio");
+    radio.setAttribute("value", "config");
+    radio.setAttribute("name", "loadFrom");
+    if (sele === 'config')
+        radio.checked = true;
+    radio.onclick = updateList;
+
+    label = document.createElement("label");
+    label.innerHTML = "Config";
+
+    loadDiv.appendChild(radio);
+    loadDiv.appendChild(label);
+
+    radio = document.createElement("INPUT");
+    radio.setAttribute("type", "radio");
+    radio.setAttribute("value", "page");
+    radio.setAttribute("name", "loadFrom");
+    if (sele === 'page')
+        radio.checked = true;
+
+    label = document.createElement("label");
+    label.innerHTML = "Page";
+    console.log("i m ann");
+    radio.onclick = updateList;
+    loadDiv.appendChild(radio);
+    loadDiv.appendChild(label);
+    content.appendChild(loadDiv);
+
+}
+
+function updateList(ele) {
+
+    console.log(ele.srcElement.value);
+    if (ele.srcElement.value === 'page') {
+        var content = document.getElementById('content');
+        while (content.hasChildNodes()) {
+            content.removeChild(content.firstChild);
+        }
+        var searchContent = document.getElementById('searchContent');
+        while (searchContent.hasChildNodes()) {
+            searchContent.removeChild(searchContent.firstChild);
+        }
+        createLoadOptions(content, "page");
+        var name = getDomainName(currentUrl);
+        //prefForDom = googleSearch;
+        //console.log("check2-" + prefForDom + "-");
+        document.getElementById('addbtn').disabled = true;
+        document.getElementById('savebtn').disabled = true;
+        //document.getElementById('searchbtn').hidden = "hidden";
+        //document.getElementById('searchText').hidden = "hidden";
+        content.style.width = "600px";
+        document.getElementById('body').style.width = "603px";
+        searchPage = true;
+        if (googleSearch === "") {
+            console.log("Search list is empty");
+        }
+        var engineName = name;//getDomainName(searchEngine); //new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
+        var div = document.createElement('div');
+        div.setAttribute("align", "center");
+        var engineLogo = document.createElement("IMG");
+        console.log("get favicon--" + name);
+        engineLogo.setAttribute("src", 'chrome://favicon/'+ name); //searchEngine);
+        //engineLogo.setAttribute("src", '/icons/' + engineName + '.ico');
+        engineLogo.style.cssFloat   = 'middle';
+        div.appendChild(engineLogo);
+        //var domain = getDomain(searchEngine);
+        //var engineName = new URL(searchEngine).hostname.split('.')[1];//domain.split('.')[0];
+
+        var searchEngineTxt = document.createTextNode(" " + engineName + " results.");
+        div.appendChild(searchEngineTxt);
+        content.appendChild(div);
+        console.log(googleSearch[name]['tree']);
+        showTree = googleSearch[name]['tree'];
+        document.getElementById('selectall').hidden = true;
+        document.getElementById('selectall').nextSibling.nodeValue = "";
+        document.getElementById('sortListDir').hidden = true;
+        document.getElementById('howmany').hidden = true;
+        console.log(googleSearch);
+        loadList(googleSearch[name]['sites'], content, name, googleSearch[name]['tree']);
+    } else if (ele.srcElement.value === 'config'){
+        console.log("config part");
+        var content = document.getElementById('content');
+        while (content.hasChildNodes()) {
+            content.removeChild(content.firstChild);
+        }
+        var searchContent = document.getElementById('searchContent');
+        while (searchContent.hasChildNodes()) {
+            searchContent.removeChild(searchContent.firstChild);
+        }
+        createLoadOptions(content, "config");
+        var url = new URL(currentUrl);
+        var name = getDomainName(currentUrl);
+        searchPage = false;
+        content.style.width = "200px";
+        document.getElementById('body').style.width = "400px";
+        document.getElementById('addbtn').disabled = false;
+        document.getElementById('savebtn').disabled = false;
+
+        document.getElementById('selectall').hidden = false;
+        document.getElementById('selectall').nextSibling.nodeValue = "All";
+        document.getElementById('sortListDir').hidden = false;
+        document.getElementById('howmany').hidden = false;
+        loadList(getPreferences(url.hostname, name), content, name);
+    }
+
+    //content.removeAll();
+
+}
+
+function noConfigFound(content, msg) {
     console.log("domain not set...");
+    var textContent = "\nYou may enter the URL's to open,one below the other,\nin the space given below and open them.";
+    if (msg) {
+        textContent = msg + textContent;
+        document.getElementById('addbtn').disabled = true;
+    } else {
+        textContent = "Domain not set in preference." + textContent;
+    }
     const divTxt = document.createElement("div");
     var pre = document.createElement("PRE");
-    var text = document.createTextNode("Domain not set in preference.\nYou may enter the URL's to open,one below the other,\nin the space given below and open them.");
+    var text = document.createTextNode(textContent);//"Domain not set in preference.\nYou may enter the URL's to open,one below the other,\nin the space given below and open them.");
     pre.appendChild(text);
     divTxt.style.marginLeft = "25px";
-    document.getElementById('openbtn').hidden = "hidden";
+    document.getElementById('openbtn').disabled = true;
     //document.getElementById('cancelbtn').hidden = "hidden";
-    document.getElementById('selectall').hidden = "hidden";
-    document.getElementById('selectall').nextSibling.nodeValue = "";
-    document.getElementById('sortListDir').hidden = "hidden";
-    document.getElementById('sortListDir').nextSibling.nodeValue = "";
-    //document.getElementById('addbtn').hidden = "";
+    document.getElementById('selectall').disabled = true;
+    //document.getElementById('selectall').nextSibling.nodeValue = "";
+    document.getElementById('sortListDir').disabled = true;
+    //document.getElementById('sortListDir').nextSibling.nodeValue = "";
+
+    document.getElementById('savebtn').disabled = true;
     document.getElementById('anonymus').hidden = "";
     if (anonymus) {
         document.getElementById('anonymus').value = anonymus;
-        document.getElementById('openbtn').hidden = "";
+        document.getElementById('openbtn').disabled = false;
     }
     document.getElementById('anonymus').onkeyup = editTextArea;
 
@@ -961,14 +1242,15 @@ function createRadio(content) {
     //console.log("url hostname eng-" + engineUrl.hostname);
     var engine;
     if (searchPage) {
-        engine = getDomainName(searchEngine); //engineUrl.hostname.split('.')[1];
+        //console.log(searchEngine + currentUrl);
+        engine = searchEngine; //getDomainName(searchEngine); //engineUrl.hostname.split('.')[1];
     }
 
-    var sitesArr = ['https://www.google.com/', 'https://search.yahoo.com/', 'https://www.bing.com/', 'https://www.youtube.com/']; //searchSites.split(',');
+    var sitesArr = ['https://www.google.com/', 'https://search.yahoo.com/', 'https://www.bing.com/']; //searchSites.split(',');//, 'https://www.youtube.com/'
 
     var searchContent = document.getElementById('searchContent');
 
-    var searchDiv = document.createElement('searchDiv');
+    var searchDiv = document.createElement('div');
     searchDiv.id = "searchDiv";
     searchDiv.style.margin = "0px 0px 0px 25px";
     searchDiv.style.width = '300px';
@@ -1024,7 +1306,7 @@ function createRadio(content) {
     searchAgainBtn.setAttribute("type", "button");
     selectAll ? searchAgainBtn.disabled = true : searchAgainBtn.disabled = false;
     if (searchPage) {
-        /*var radio = document.createElement("INPUT");
+        var radio = document.createElement("INPUT");
         radio.setAttribute("type", "radio");
         radio.setAttribute("value", both);
         radio.setAttribute("name", "site");
@@ -1032,7 +1314,7 @@ function createRadio(content) {
         var label = document.createElement("label");
         label.innerHTML = "Both";
         searchDiv.appendChild(radio);
-        searchDiv.appendChild(label);*/
+        searchDiv.appendChild(label);
         searchAgainBtn.setAttribute("id", "searchAgain");
         searchAgainBtn.setAttribute("value", "Search Again");
         searchAgainBtn.onclick = searchAgain;
@@ -1041,7 +1323,7 @@ function createRadio(content) {
         searchAgainTxt.setAttribute("type", "text");
         searchAgainTxt.setAttribute("id", "searchTextBox");
         selectAll ? searchAgainTxt.disabled = true : searchAgainTxt.disabled = false;
-        searchAgainTxt.style.marginLeft = "25px";
+        //fsearchAgainTxt.style.marginLeft = "25px";
         searchDiv.appendChild(searchAgainTxt);
         searchAgainBtn.setAttribute("id", "searchbtn");
         searchAgainBtn.setAttribute("value", "Search");
@@ -1082,7 +1364,7 @@ function getPreferences(url_hostname, name, dataObj) {
         dataObj = jsonData;
     }
     console.log(url_hostname + " -- " + name );
-    let pref = [];
+    let pref;// = [];
     for (var item in dataObj) {
         let domain;
         domain = dataObj[item]['current'];
@@ -1126,12 +1408,14 @@ function createList(allurls) {
     //list.setAttribute("")
     if (!searchPage) {
         list.style.width = "100%";
+        selectAll = true;
     }
     list.style.align = "right";
 
     var i=1;
     var value="";
     var bgColor = "#EDEEED"; //"#F4F6F7";
+
     allurls.forEach(function(page) {
         console.log("in createList " + JSON.stringify(page));
         //console.log(Object.keys(page));
@@ -1143,55 +1427,58 @@ function createList(allurls) {
         var linkObj, key, url;
         if (typeof page === 'object') {
             console.log("has key value");
-
-            if (typeof Object.values(page)[0]  === 'object') {
-                url = Object.values(page)[0];
-                linkObj = url.url;
-                if (linkObj.indexOf("http") === -1) {
-                    linkObj = baseUrl + linkObj;
-                }
-                input.setAttribute("value", linkObj);
-                input.setAttribute("Alt", url.alt);
-                if (currentUrl !== linkObj && url.selected !== false && selectAll) {
-                    input.setAttribute("checked", true);
-                    label.style.fontWeight = "bold";
-                    if (searchPage) {
-                        var itemValue = input.value;
-                        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                            chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
-                                console.log(response.farewell);
-                            });
-                        });
+            if (Object.keys(page).length > 0){ //todo remove this condition 291217 ..any empty obj got into the jsonObj for washington post....due to which popup dint load...ths was added to handle that
+                if (typeof Object.values(page)[0]  === 'object') {
+                    url = Object.values(page)[0];
+                    linkObj = url.url;
+                    if (linkObj.indexOf("http") === -1) {
+                        linkObj = baseUrl + linkObj;
                     }
-
-                } else {
-                    console.log("llll" + label.getText);
-                }
-            } else {
-                linkObj = Object.values(page)[0];
-                if (linkObj.indexOf("http") === -1) {
-                    linkObj = baseUrl + linkObj;
-                }
-                input.setAttribute("value", linkObj);
-                console.log("in else");
-                input.setAttribute("Alt", linkObj);
-                if (currentUrl !== linkObj && selectAll) {
-                    input.setAttribute("checked", true);
-                    label.style.fontWeight = "bold";
-                    if (searchPage) {
-                        var itemValue = input.value;
-                        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                            chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
-                                console.log(response.farewell);
+                    input.setAttribute("value", linkObj);
+                    input.setAttribute("Alt", url.alt);
+                    if (currentUrl !== linkObj && url.selected !== false) { // && selectAll
+                        input.setAttribute("checked", true);
+                        label.style.fontWeight = "bold";
+                        if (searchPage) {
+                            var itemValue = input.value;
+                            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                                chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
+                                    console.log(response.farewell);
+                                });
                             });
-                        });
+                        }
+
+                    } else {
+                        console.log("llll" + label.getText);
                     }
                 } else {
-                    console.log("llll" + label.getText);
+                    linkObj = Object.values(page)[0];
+                    if (linkObj.indexOf("http") === -1) {
+                        linkObj = baseUrl + linkObj;
+                    }
+                    input.setAttribute("value", linkObj);
+                    console.log("in else");
+                    input.setAttribute("Alt", linkObj);
+                    if (currentUrl !== linkObj && selectAll) {
+                        input.setAttribute("checked", true);
+                        label.style.fontWeight = "bold";
+                        if (searchPage) {
+                            var itemValue = input.value;
+                            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                                chrome.tabs.sendMessage(tabs[0].id, {highlight:true, selectedItems: itemValue}, function(response) {
+                                    console.log(response.farewell);
+                                });
+                            });
+                        }
+                    } else {
+                        console.log("llll" + label.getText);
+                    }
                 }
+
+                key = Object.keys(page)[0];
+
             }
 
-            key = Object.keys(page)[0];
         } else {
             var pageParts = page.split('/');
             console.log(pageParts.length);
@@ -1222,7 +1509,7 @@ function createList(allurls) {
         if (currentUrl === linkObj) {
             key =  key + "(Current Tab)";
             console.log("kkk"+key);
-            document.getElementById('addbtn').hidden = "hidden";
+            document.getElementById('addbtn').disabled = true;
         }
         var id = key; //Object.keys(page)[0];
         input.setAttribute("id", id);
@@ -1272,12 +1559,12 @@ function createList(allurls) {
             bgColor = "#EDEEED"; //"#F4F6F7";
         }
     });
-    var howmany = document.getElementById("howmany");
+    /*var howmany = document.getElementById("howmany");
     if (selectAll) {
         howmany.textContent = allurls.length + " selected.";
     } else {
         howmany.textContent = "0 selected.";
-    }
+    }*/
     return list;
 
 
@@ -1301,6 +1588,10 @@ function selectOption() {
     if (Array.isArray(allTypes[selectedType])){
         content.appendChild(createList(allTypes[selectedType]));
     }
+    const allUrls = document.getElementsByName("link");
+    var parentNode = allUrls[0].parentNode.parentNode.childNodes;
+    changeSelection(parentNode);
+
 }
 
 
@@ -1378,12 +1669,12 @@ function isParentGoogle(parentUrl) {
     //return google.indexOf(url.hostname) > -1;
 }
 
-function isFromSearch(currentURL) {
+function isFromSearch(currentURL, name) {
     //console.log("Check1 " + JSON.stringify(googleSearch));
     console.log("Check22 " + currentURL);
     var urlFound = false;
-    if (googleSearch) {
-        googleSearch.forEach(function (obj) {
+    if (googleSearch && googleSearch[name]['sites']) {
+        googleSearch[name]['sites'].forEach(function (obj) {
             var value = Object.values(obj);
             console.log("Check3 " + value);
             if (value == currentURL) {
@@ -1428,4 +1719,204 @@ function isUrlInList(currentURL, urlList) {
     });
 
     return urlFound;
+}
+
+chrome.runtime.onMessage.addListener(function(req, sender, sendres){
+    if (req.cnnLoading === "complete") {
+        console.log("cnn loaded....")
+    }
+
+
+});
+
+function   mainbuttonClick () {
+    console.log("on click text");
+}
+
+function loadList(prefForDom, content, name, treeStructure) {
+    if (Array.isArray(prefForDom)) {
+        console.log("pref dom is an array");
+        if (prefForDom.length > 0) {
+            content.appendChild(createList(prefForDom));
+        } else {
+            noConfigFound(content);
+        }
+    } else {
+        console.log("in else...");
+        if (treeStructure) {
+            console.log("tree");
+            /*var det = document.createElement("details");
+            var summ = document.createElement("summery");
+            summ.innerHTML = "click Me";
+            var textNode = document.createElement('kfkgkdfgkf');
+            summ.appendChild(textNode);
+            det.appendChild(summ);
+            content.appendChild(det);*/
+            var keys = Object.keys(prefForDom);
+
+            keys.forEach(function (key) {
+                var detail = document.createElement("details");
+                detail.setAttribute('name', 'detail');
+                var inp = document.createElement('input');
+                inp.setAttribute('type', 'checkbox');
+                inp.setAttribute('id', key);
+                //inp.onclick = selectChildren;
+                inp.disabled = true;
+                var summary = document.createElement('summary');
+                summary.innerHTML = key;
+                //var txt = document.createTextNode(key);
+                //inp.appendChild(txt);
+                detail.style.marginLeft = "25px";
+                detail.appendChild(summary);
+                summary.appendChild(inp);
+                detail.onclick = detailClick;
+                var objs = prefForDom[key]; //Object.values(prefForDom);
+                //console.log(objs);
+                var ol = document.createElement('ol');
+                var bgColor = "#EDEEED";
+                objs.forEach(function(obj){
+                    //console.log(obj);
+
+                    var subli = document.createElement('li');
+                    var subinput = document.createElement('input');
+                    subinput.setAttribute('type', 'checkbox');
+                    subinput.setAttribute('id', Object.keys(obj));
+                    subli.style.listStyleType = 'none';
+                    subli.style.position = 'relative';
+                    subli.style.backgroundColor = bgColor;
+                    ol.appendChild(subli);
+                    //var lbl = document.createElement('label');
+                    //console.log("********************" + JSON.stringify(obj));
+                    //var txt = document.createTextNode(Object.keys(obj));
+                    //lbl.htmlFor = Object.keys(obj);
+                    //lbl.appendChild(txt);
+                    //lbl.style.display = 'block';
+                    //subli.appendChild(lbl);
+                    subli.appendChild(subinput);
+
+                    var anchor = document.createElement('a');
+                    anchor.href = Object.values(obj);
+                    anchor.innerHTML = Object.keys(obj);
+                    subli.appendChild(anchor);
+                    detail.appendChild(ol);
+                    if (bgColor === "#EDEEED") {//ECF0F1 //"#F4F6F7"
+                        bgColor = "#FFFFFF";
+                    } else {
+                        bgColor = "#EDEEED"; //"#F4F6F7";
+                    }
+                });
+
+                content.appendChild(detail);
+
+            });
+
+            /*keys.forEach(function (key) {
+                var orderedList = document.createElement('ol');
+                var li = document.createElement('li');
+                var input = document.createElement('input');
+                input.setAttribute('type', 'checkbox');
+                //var idy = key;
+                input.setAttribute('id', key);
+                input.style.position = 'absolute';
+                li.style.listStyleType = 'none';
+                li.style.position = 'relative';
+                orderedList.appendChild(li);
+                var label = document.createElement('label');
+                var txt = document.createTextNode(key);
+                label.htmlFor = key;
+                label.appendChild(txt);
+                label.style.display = 'block';
+                li.appendChild(label);
+                li.appendChild(input);
+                var objs = Object.values(prefForDom);
+                objs.forEach(function(obj){
+                    var ol = document.createElement('ol');
+                    var subli = document.createElement('li');
+                    var subinput = document.createElement('input');
+                    subinput.setAttribute('type', 'checkbox');
+                    subinput.setAttribute('id', Object.keys(obj[0]));
+                    subli.style.listStyleType = 'none';
+                    subli.style.position = 'relative';
+                    ol.appendChild(subli);
+                    //var lbl = document.createElement('label');
+                    //console.log("********************" + JSON.stringify(obj));
+                    //var txt = document.createTextNode(Object.keys(obj[0]));
+                    //lbl.htmlFor = Object.keys(obj[0]);
+                    //lbl.appendChild(txt);
+                    //lbl.style.display = 'block';
+                    //subli.appendChild(lbl);
+                    subli.appendChild(subinput);
+
+                    var anchor = document.createElement('a');
+                    anchor.href = Object.values(obj[0]);
+                    anchor.innerHTML = Object.keys(obj[0]);
+                    subli.appendChild(anchor);
+                    li.appendChild(ol);
+                });
+                content.appendChild(orderedList);
+
+            });*/
+
+
+
+        } else {
+            content.appendChild(createDropDown(prefForDom, name));
+            var label = document.createElement('label');
+            var txt = document.createTextNode("Options ");
+            label.setAttribute("for", "typeSelect");
+            label.appendChild(txt);
+            label.style.marginLeft = "25px";
+            content.insertBefore(label,document.getElementById("typeSelect"));
+            var type = document.getElementById("typeSelect");
+            //type.style.marginLeft = "25px";
+            var selectedType = type.options[type.selectedIndex].value;
+            content.appendChild(createList(prefForDom[selectedType]));
+        }
+
+    }
+    console.log(selectAll + "---" + searchPage);
+    if (selectAll && searchPage) {
+        document.getElementById('selectall').checked = true;
+    }
+
+    const allUrls = document.getElementsByName("link");
+    console.log(allUrls[0]);
+    var parentNode = allUrls[0].parentNode.parentNode.childNodes;
+    changeSelection(parentNode);
+    console.log(name);
+    if (searchPage && (name === 'google' || name === 'yahoo' || name === 'bing' || name === 'youtube')) {
+        createRadio(content);
+    }
+}
+
+function selectChildren(obj) {
+    console.log(obj.checked);
+    var allLi = obj.parentNode.nextSibling.childNodes;
+    var set = obj.checked;
+
+    allLi.forEach(function(li){
+        //console.log(li);
+        if (set) {
+            console.log(li);
+            li.childNodes[0].checked = true;
+            li.childNodes[1].style.fontWeight = "bold";
+        } else {
+            console.log(li);
+            li.childNodes[0].checked = false;
+            li.childNodes[1].style.fontWeight = "normal";
+        }
+
+    });
+}
+
+function detailClick() {
+    //console.log(this);
+    this.childNodes[0].childNodes[1].checked = !(this.open);
+    console.log(this.attributes);
+    selectChildren(this.childNodes[0].childNodes[1]);
+    //if (this.open) {
+    //console.log(this.childNodes);
+    //this.childNodes[0].childNodes[1].checked = false;
+
+    //}
 }
